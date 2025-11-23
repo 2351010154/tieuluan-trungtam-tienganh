@@ -1,0 +1,28 @@
+{% extends "layout/base.html" %}
+{% block content %}
+<div class="d-flex flex-column justify-content-center login align-items-center vh-100">
+    <div class="d-flex bg-white rounded-4">
+        <div class="d-flex flex-column px-18 py-12 align-items-center" id="login-div">
+            <p class="fw-bold fs-3 mb-0">Đăng nhập</p>
+            <div class="h-8"></div>
+            <form action="{{ url_for('login_process') }}" method="POST">
+                <div class="form-floating">
+                    <input type="text" name="username" class="form-control" id="floatingInput" placeholder="username">
+                    <label for="floatingInput">Tài khoản</label>
+                </div>
+                <div class="h-6"></div>
+                <div class="form-floating">
+                    <input type="password" name="password" class="form-control"
+                           id="floatingPassword" placeholder="Password">
+                    <label for="floatingPassword">Mật khẩu</label>
+                </div>
+                <div class="w-100 text-end">
+                    <a href="#" class="text-decoration-none ">Quên mật khẩu</a>
+                </div>
+                <div class="h-6"></div>
+                <button type="submit" class="btn btn-primary w-100">Đăng nhập</button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,89 @@
+{% extends "layout/base.html" %}
+
+{% block content %}
+
+<div class="wrapper">
+    {% include 'sidebar.html' %}
+    <div class="main">
+        <form class="form-inline" id="search-form">
+            <input id="course-search" name="keyword" class="form-control w-75" type="search" placeholder="Search"
+                   aria-label="Search"
+                   oninput="debounceSearch()"/>
+            {% if request.args.get('difficulty') %}
+            <input type="hidden" name="difficulty" value="{{ request.args.get('difficulty') }}">
+            {% endif %}
+        </form>
+
+        <div class="h-4"></div>
+
+        <div class="dif-list">
+
+            <a href="{{ url_for('courses_view')}} ">
+                <div class="dif-card">
+                    <p>Tổng khoá học</p>
+                    <p class="fw-bold fs-4">1000</p>
+                </div>
+            </a>
+
+            {% for l in levels %}
+            <a href="{{ url_for('courses_view', difficulty=l.value)}} ">
+                <div class="dif-card">
+                    <p>{{ l.value }}</p>
+                    <div class="d-flex flex-row">
+                        <p class="fw-bold fs-4">23</p>
+                        <div class="color-badge" style="background-color: #ef4444;"></div>
+                    </div>
+                </div>
+            </a>
+            {% endfor %}
+        </div>
+
+
+        <div class="h-4"></div>
+
+        <div class="d-flex flex-row align-items-center">
+            <button class="btn">Ẩn đã chọn</button>
+
+            {% if pages > 1 %}
+            <nav class="ms-auto ">
+                <ul class="pagination m-0">
+                    {% for p in range(1, pages + 1) %}
+                    <li class="page-item"><a class="page-link"
+                                             href="{{ url_for('courses_view', page=p, difficulty=request.args.get('difficulty'), keyword=request.args.get('keyword')) }}">{{
+                        p }}</a>
+                    </li>
+                    {% endfor %}
+                </ul>
+            </nav>
+            {% endif %}
+        </div>
+
+        <div class="h-4"></div>
+        <div class="backdrop"></div>
+
+        {% for c in courses %}
+        <div class="course-info-card me-4 mb-3">
+            <div class="d-flex flex-column gap-2">
+                <p class="fw-bold course-title mb-2">{{ c.name }}</p>
+                <div class="w-300">
+                    <p class="fw-light">{{ c.description }}</p>
+                </div>
+                <div class="d-flex flex-row ms-auto gap-2">
+                    <button id="view-details" class="btn-basic" style="border: 1px solid #e2e8f0;">Chi tiết</button>
+                    <button id="enroll-course" class="btn-basic" style="border: 1px solid #3b82f6;">Đăng ký</button>
+
+                    <div id="modal" class="modal">
+                        <p id="modal-name"></p>
+                        <p id="modal-teacher"></p>
+                        <p id="modal-class"></p>
+                        <button class="btn btn-primary">Close</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+
+    </div>
+</div>
+
+{% endblock %}
