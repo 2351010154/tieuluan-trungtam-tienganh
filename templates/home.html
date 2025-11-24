@@ -1,0 +1,87 @@
+{% extends "layout/base.html" %}
+
+{% block content %}
+<body>
+<div class="wrapper">
+    {% include 'sidebar.html' %}
+    <div class="main p-12">
+        <div class="d-flex flex-column ">
+            <div class="d-flex flex-row pb-3 align-items-center">
+                <p class="fw-bold fs-2">Khoá học</p>
+                <button class="btn btn-primary ms-auto ">Đã thanh toán</button>
+            </div>
+            <div class="row course-list">
+                <div class="course-card col">
+                    <div class="d-flex flex-row">
+                        <div class="difficulty-badge">
+                            <p>Advanced</p>
+                        </div>
+                    </div>
+                    <div class="h-3"></div>
+                    <div class="d-flex flex-row">
+                        <p class="course-title">Tiếng Anh Nâng Cao 4</p>
+                    </div>
+                    <hr class="my-2">
+                    <div class="d-flex flex-row">
+                        <div class="d-flex flex-column">
+                            <p class="course-price">2.400.000</p>
+                            <p class="me-auto font-weight-light">Price</p>
+                        </div>
+                        <div class="d-flex flex-column ms-auto">
+                            <p class="course-price">IT13</p>
+                            <p class="ms-auto font-weight-light">Lớp</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="course-card col">
+                    <div class="d-flex flex-row">
+                        <div class="difficulty-badge">
+                            <p>Advanced</p>
+                        </div>
+                    </div>
+                    <div class="h-3"></div>
+                    <div class="d-flex flex-row">
+                        <p class="course-title">Tiếng Anh Nâng Cao 4</p>
+                    </div>
+                    <hr class="my-2">
+                    <div class="d-flex flex-row">
+                        <div class="d-flex flex-column">
+                            <p class="course-price">2.400.000</p>
+                            <p class="me-auto font-weight-light">Price</p>
+                        </div>
+                        <div class="d-flex flex-column ms-auto">
+                            <p class="course-price">IT13</p>
+                            <p class="ms-auto font-weight-light">Lớp</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="course-card col">
+                    <div class="d-flex flex-row">
+                        <div class="difficulty-badge">
+                            <p>Advanced</p>
+                        </div>
+                    </div>
+                    <div class="h-3"></div>
+                    <div class="d-flex flex-row">
+                        <p class="course-title">Tiếng Anh Nâng Cao 4</p>
+                    </div>
+                    <hr class="my-2">
+                    <div class="d-flex flex-row">
+                        <div class="d-flex flex-column">
+                            <p class="course-price">2.400.000</p>
+                            <p class="me-auto font-weight-light">Price</p>
+                        </div>
+                        <div class="d-flex flex-column ms-auto">
+                            <p class="course-price">IT13</p>
+                            <p class="ms-auto font-weight-light">Lớp</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+{% endblock %}
