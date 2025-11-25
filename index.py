@@ -1,8 +1,9 @@
 import math
 
 from flask import render_template, session, request, url_for, jsonify
-from flask_login import current_user, logout_user, login_user
+from flask_login import current_user, logout_user, login_user, login_required
 from werkzeug.utils import redirect
+from models import Role
 
 import dao
 import enums
@@ -27,9 +28,27 @@ def login_process():
 
     if user and user.check_password(password):
         login_user(user)
-        return redirect(url_for('home_view'))
-    return render_template('index.html')
 
+        if user.role == Role.ADMIN:
+            return redirect(url_for('admin_home_view'))
+        elif user.role == Role.STUDENT:
+            return redirect(url_for('home_view'))
+
+    return render_template('index.html', err_mgs='Sai mật khẩu hoặc tài khoản')
+
+@app.route('/register')
+def register_view():
+    return render_template('register.html')
+
+@app.route('/register', methods=['POST'])
+def register_process():
+    password = request.form['password']
+    confirm = request.form['confirm']
+
+    if password != confirm:
+        err_msg = 'Mật Khẩu Không Khớp!'
+        return render_template('register.html', err_msg=err_msg)
+    avatar = request.files['avatar']
 
 @app.route('/logout')
 def logout():
@@ -49,6 +68,43 @@ def home_view():
         return render_template('home.html')
     return redirect(url_for('index'))
 
+@app.route('/admins')
+@login_required
+def admin_home_view():
+    if current_user.is_authenticated:
+        return render_template('admin_home.html')
+    return redirect(url_for('index'))
+
+@app.route('/admins/baocao')
+@login_required
+def admin_baocao_view():
+    total_records = 50
+    per_page = 10
+    pages = math.ceil(total_records / per_page)
+
+    current_page = request.args.get('page', 1, type=int)
+
+    return render_template(
+        'admin_baocao.html',
+        pages=pages,
+        current_page=current_page
+    )
+
+@app.route('/admins/rules')
+def admin_rules_view():
+    rules_data = {
+        "max_students": 25,
+        "tuition_fees": [
+            {"id": 1, "name": "Beginner", "price": 1500000},
+            {"id": 2, "name": "Intermediate", "price": 2000000},
+            {"id": 3, "name": "Advanced", "price": 3500000}
+        ]
+    }
+
+    return render_template(
+        'admin_quydinh.html',
+        rules=rules_data
+    )
 
 @app.route('/courses')
 def courses_view():

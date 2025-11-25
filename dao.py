@@ -2,6 +2,7 @@ from sqlalchemy import func, case
 
 from enums import Role
 from models import User, Course
+import hashlib
 from __init__ import app
 
 
@@ -62,3 +63,7 @@ def count_course(level, kw):
 
 def get_courses():
     return Course.query.all()
+
+def add_user(username, password_hash, role, avatar):
+    u = User(name=username.strip(),
+             password=str(hashlib.md5(password_hash.strip().encode('utf-8')).hexdigest), role=role, avatar=avatar)

@@ -1,0 +1,115 @@
+{% extends "layout/base.html" %}
+
+{% block content %}
+<body>
+<div class="wrapper">
+    {% include 'sidebar.html' %}
+    <div class="main p12">
+        <header class="page-header">
+            <div class="header-left">
+                <a href="#" class="back-btn"><i class="fa-solid fa-chevron-left"></i></a>
+                <h1>Dashboard</h1>
+            </div>
+        </header>
+
+        <div class="main p-4">
+            <div class="d-flex flex-column">
+
+                <div class="d-flex flex-row pb-4 align-items-center">
+                    <p class="fw-bold fs-4 m-0">Tổng quan hôm nay</p>
+                    <button class="btn btn-outline-secondary btn-sm ms-auto"><i class="fa-solid fa-calendar me-2"></i>Tháng
+                        này
+                    </button>
+                </div>
+
+                <div class="row g-4 mb-5">
+
+                    <div class="col-md-4">
+                        <div class="course-card">
+                            <div class="d-flex flex-row justify-content-between">
+                                <div class="difficulty-badge">
+                                    <p class="m-0">Doanh thu</p>
+                                </div>
+                                <i class="fa-solid fa-sack-dollar text-success fs-4"></i>
+                            </div>
+                            <div style="height: 12px;"></div>
+                            <div class="d-flex flex-row">
+                                <p class="course-title fs-3">150.000.000 ₫</p>
+                            </div>
+                            <hr class="my-3 opacity-25">
+                            <div class="d-flex flex-row align-items-center">
+                                <div class="d-flex flex-column">
+                                    <p class="text-success fw-bold m-0"><i class="fa-solid fa-arrow-up"></i> 12%</p>
+                                    <p class="me-auto text-light-custom">So với tháng trước</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-4">
+                        <div class="course-card">
+                            <div class="d-flex flex-row justify-content-between">
+                                <div class="difficulty-badge badge-blue">
+                                    <p class="m-0">Học viên mới</p>
+                                </div>
+                                <i class="fa-solid fa-user-graduate text-primary fs-4"></i>
+                            </div>
+                            <div style="height: 12px;"></div>
+                            <div class="d-flex flex-row">
+                                <p class="course-title fs-3">45 Học viên</p>
+                            </div>
+                            <hr class="my-3 opacity-25">
+                            <div class="d-flex flex-row align-items-center">
+                                <div class="d-flex flex-column">
+                                    <p class="text-primary fw-bold m-0">Tổng: 1,250</p>
+                                    <p class="me-auto text-light-custom">Đang hoạt động</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-4">
+                        <div class="course-card">
+                            <div class="d-flex flex-row justify-content-between">
+                                <div class="difficulty-badge badge-purple">
+                                    <p class="m-0">Lớp đang mở</p>
+                                </div>
+                                <i class="fa-solid fa-chalkboard-user text-info fs-4"></i>
+                            </div>
+                            <div style="height: 12px;"></div>
+                            <div class="d-flex flex-row">
+                                <p class="course-title fs-3">12 Lớp</p>
+                            </div>
+                            <hr class="my-3 opacity-25">
+                            <div class="d-flex flex-row align-items-center">
+                                <div class="d-flex flex-column">
+                                    <p class="text-warning fw-bold m-0">3 Lớp</p>
+                                    <p class="me-auto text-light-custom">Sắp khai giảng</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row g-4">
+                    <div class="col-12">
+                        <div class="course-card">
+                            <div class="d-flex justify-content-between align-items-center mb-4">
+                                <p class="course-title">Biểu đồ doanh thu</p>
+                                <select class="form-select form-select-sm w-auto">
+                                    <option>Năm 2024</option>
+                                </select>
+                            </div>
+                            <div style="height: 300px; background-color: #f8fafc; border-radius: 8px; display: flex; align-items: center; justify-content: center; color: #94a3b8;">
+                                [Khu vực hiển thị Biểu đồ]
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+{% endblock %}
