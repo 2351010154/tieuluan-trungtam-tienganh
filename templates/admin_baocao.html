@@ -1,0 +1,53 @@
+{% extends "layout/base.html" %}
+
+{% block content %}
+<div class="wrapper">
+    {% include 'sidebar.html' %}
+    <div class="main">
+
+        <header class="page-header">
+                <div class="header-left">
+                    <a href="#" class="back-btn"><i class="fa-solid fa-chevron-left"></i></a>
+                    <h1>Báo cáo thống kê</h1>
+                </div>
+            </header>
+
+            <div class="content-wrapper">
+
+                <div class="filter-box">
+                    <div class="filter-group">
+                        <label>Loại thống kê:</label>
+                        <div class="select-wrapper">
+                            <select id="reportType">
+                                <option>Doanh thu</option>
+                                <option>Số lượng học viên</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="filter-group">
+                        <label>Thời gian:</label>
+                        <div class="select-wrapper">
+                            <select id="timeRange">
+                                <option>Tháng</option>
+                                <option>Quý</option>
+                                <option>Năm</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <button class="btn-submit" onclick="updateChart()">Xem kết quả</button>
+                </div>
+
+                <div class="chart-area">
+                    <canvas id="myChart"></canvas>
+                    <div class="y-axis-label">Triệu VNĐ</div>
+                </div>
+
+            </div>
+    </div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="{{ url_for('static', filename='scripts/baocao.js') }}"></script>
+
+{% endblock %}

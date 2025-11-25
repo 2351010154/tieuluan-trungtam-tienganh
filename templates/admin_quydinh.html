@@ -1,0 +1,110 @@
+{% extends "layout/base.html" %}
+
+{% block content %}
+<div class="wrapper">
+    {% include 'sidebar.html' %}
+
+    <div class="main p-4">
+        <div class="d-flex flex-column gap-4">
+            <header class="page-header">
+                <div class="header-left">
+                    <a href="#" class="back-btn"><i class="fa-solid fa-chevron-left"></i></a>
+                    <h1>Thay đổi quy định</h1>
+                </div>
+            </header>
+
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white py-3">
+                    <h6 class="fw-bold m-0 text-primary"><i class="fa-solid fa-school me-2"></i>1. Quy định Lớp học</h6>
+                </div>
+                <div class="card-body p-4">
+                    <div class="row align-items-center">
+                        <div class="col-md-4">
+                            <label class="form-label fw-bold">Sĩ số tối đa / Lớp:</label>
+                            <p class="text-muted small">Số lượng học viên tối đa cho phép trong một lớp học.</p>
+                        </div>
+                        <div class="col-md-8">
+                            <div class="input-group">
+                                <input type="number" id="maxStudent" class="form-control"
+                                       value="{{ rules.max_students }}">
+                                <span class="input-group-text">Học viên</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white py-3">
+                    <h6 class="fw-bold m-0 text-success"><i class="fa-solid fa-money-bill-wave me-2"></i>2. Quy định Học
+                        phí</h6>
+                </div>
+                <div class="card-body p-4">
+
+                    <div class="table-responsive">
+                        <table class="table table-bordered align-middle">
+                            <thead class="table-light">
+                            <tr>
+                                <th style="width: 50px;">STT</th>
+                                <th>Cấp độ (Level)</th>
+                                <th>Học phí hiện tại (VNĐ)</th>
+                                <th style="width: 100px;">Trạng thái</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            {% for level in rules.tuition_fees %}
+                            <tr>
+                                <td class="text-center">{{ loop.index }}</td>
+                                <td class="fw-bold">{{ level.name }}</td>
+                                <td>
+                                    <div class="input-group input-group-sm">
+                                        <input type="number" class="form-control tuition-input"
+                                               data-level="{{ level.id }}"
+                                               value="{{ level.price }}">
+                                        <span class="input-group-text">₫</span>
+                                    </div>
+                                </td>
+                                <td class="text-center">
+                                    <span class="badge bg-success bg-opacity-10 text-success">Active</span>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+
+                </div>
+            </div>
+
+            <div class="card border-0 shadow-sm p-3">
+                <div class="d-flex justify-content-end">
+                    <button onclick="saveSettings()" class="btn btn-primary btn-sm px-2">
+                        <i class="fa-solid fa-floppy-disk me-2"></i> Lưu thay đổi
+                    </button>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+    function saveSettings() {
+        const maxStudent = document.getElementById('maxStudent').value;
+
+        if (maxStudent <= 0) {
+            Swal.fire('Lỗi', 'Sĩ số phải lớn hơn 0!', 'error');
+            return;
+        }
+
+        Swal.fire({
+            icon: 'success',
+            title: 'Thành công',
+            text: 'Đã cập nhật quy định mới!',
+            showConfirmButton: false,
+            timer: 1500
+        });
+    }
+</script>
+{% endblock %}

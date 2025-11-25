@@ -1,0 +1,37 @@
+{% extends "layout/base.html" %}
+{% block content %}
+<div class="d-flex flex-column justify-content-center login align-items-center vh-100">
+    <div class="d-flex bg-white rounded-4">
+        <div class="d-flex flex-column px-18 py-12 align-items-center" id="register-div">
+            <p class="fw-bold fs-3 mb-0">Đăng ký</p>
+            <div class="h-8"></div>
+            <form action="{{ url_for('register_process') }}" method="POST">
+                <div class="form-floating">
+                    <input type="text" name="username" class="form-control" id="floatingInput" placeholder="username" required>
+                    <label for="floatingInput">Tên Tài khoản</label>
+                </div>
+                <div class="h-6"></div>
+                <div class="form-floating">
+                    <input type="password" name="password" class="form-control"
+                           id="floatingPassword" placeholder="Password" required>
+                    <label for="floatingPassword">Mật khẩu</label>
+                </div>
+                <div class="h-6"></div>
+                <div class="form-floating">
+                    <input type="password" name="confirm" class="form-control"
+                           id="floatingConfirm" placeholder="Password" required>
+                    <label for="floatingConfirm">Xác nhận mật khẩu</label>
+                </div>
+                <div class="h-6"></div>
+                <div class="mb-3">
+                    <label for="fromFile">Ảnh Avatar</label>
+                    <input type="file" name="avatar" class="form-control"
+                           id="fromFile">
+                </div>
+                <div class="h-6"></div>
+                <button type="submit" class="btn btn-primary w-100">Đăng ký</button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
