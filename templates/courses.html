@@ -19,18 +19,18 @@
         <div class="dif-list">
 
             <a href="{{ url_for('courses_view')}} ">
-                <div class="dif-card">
+                <div class="dif-card {{ 'active' if not request.args.get('difficulty') else '' }}">
                     <p>Tổng khoá học</p>
-                    <p class="fw-bold fs-4">1000</p>
+                    <p class="fw-bold fs-4">{{ total_courses.total }}</p>
                 </div>
             </a>
 
             {% for l in levels %}
             <a href="{{ url_for('courses_view', difficulty=l.value)}} ">
-                <div class="dif-card">
+                <div class="dif-card {{ 'active' if request.args.get('difficulty') == l.value else ''}}">
                     <p>{{ l.value }}</p>
                     <div class="d-flex flex-row">
-                        <p class="fw-bold fs-4">23</p>
+                        <p class="fw-bold fs-4">{{ total_courses[loop.index] }}</p>
                         <div class="color-badge" style="background-color: #ef4444;"></div>
                     </div>
                 </div>
@@ -62,7 +62,7 @@
         <div class="backdrop"></div>
 
         {% for c in courses %}
-        <div class="course-info-card me-4 mb-3">
+        <div class="course-info-card mb-3" data-course-id="{{ c.id }}">
             <div class="d-flex flex-column gap-2">
                 <p class="fw-bold course-title mb-2">{{ c.name }}</p>
                 <div class="w-300">
@@ -70,18 +70,50 @@
                 </div>
                 <div class="d-flex flex-row ms-auto gap-2">
                     <button id="view-details" class="btn-basic" style="border: 1px solid #e2e8f0;">Chi tiết</button>
-                    <button id="enroll-course" class="btn-basic" style="border: 1px solid #3b82f6;">Đăng ký</button>
+                    <button type="button" data-bs-toggle="modal" data-bs-target="#modal"
+                            class="btn-basic course-enroll"
+                            style="border: 1px solid #3b82f6;">Đăng ký
+                    </button>
 
-                    <div id="modal" class="modal">
-                        <p id="modal-name"></p>
-                        <p id="modal-teacher"></p>
-                        <p id="modal-class"></p>
-                        <button class="btn btn-primary">Close</button>
-                    </div>
+
                 </div>
             </div>
         </div>
         {% endfor %}
+
+        <div id="modal" class="modal fade">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content p-4 gap-3 d-flex flex-column">
+                    <h5 class="modal-title fw-bold " id="enroll-title"></h5>
+                    <div class="h-2"></div>
+                    <div class="form-floating ">
+                        <select class="form-select custom-form-field"
+                                id="enroll-class-select">
+                        </select>
+                        <label for="enroll-class-select">Lớp học</label>
+                    </div>
+
+                    <form class="form-floating">
+                        <input class="form-control custom-form-field enroll-instructor"
+                               id="enroll-instructor"
+                               value="Nguyễn Văn A"
+                               disabled>
+                        <label class="disabled-label">Giáo viên</label>
+                    </form>
+
+                    <form class="form-floating">
+                        <input class="form-control custom-form-field "
+                               id="enroll-level"
+                               disabled>
+                        <label class="disabled-label">Độ khó</label>
+                    </form>
+
+
+                    <div class="h-10"></div>
+                    <button class="btn btn-primary">Close</button>
+                </div>
+            </div>
+        </div>
 
     </div>
 </div>

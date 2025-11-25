@@ -1,9 +1,20 @@
+from sqlalchemy import func, case
+
+from enums import Role
 from models import User, Course
 from __init__ import app
 
 
+def get_course_by_id(course_id):
+    return Course.query.get(course_id)
+
+
 def get_user_by_id(user_id):
     return User.query.get(user_id)
+
+
+def get_instructors():
+    return User.query.filter(User.role == Role.INSTRUCTOR)
 
 
 def get_courses_filter(level, kw, page):
@@ -18,6 +29,25 @@ def get_courses_filter(level, kw, page):
         query = query.slice(start, start + page_size)
 
     return query.all()
+
+
+def sum_course_level():
+    row = Course.query.with_entities(
+        func.count(Course.id).label('total'),
+        func.sum(case(
+            {Course.level == 'Beginner': 1},
+            else_=0
+        )),
+        func.sum(case(
+            {Course.level == 'Intermediate': 1},
+            else_=0
+        )),
+        func.sum(case(
+            {Course.level == 'Advanced': 1},
+            else_=0
+        ))
+    ).first()
+    return row
 
 
 def count_course(level, kw):

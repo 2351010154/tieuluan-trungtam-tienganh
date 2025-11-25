@@ -1,12 +1,11 @@
 import math
 
-from flask import render_template, session, request, url_for
+from flask import render_template, session, request, url_for, jsonify
 from flask_login import current_user, logout_user, login_user
 from werkzeug.utils import redirect
 
 import dao
 import enums
-from admin import admin
 
 from __init__ import app, db, login_manager
 from models import User
@@ -34,7 +33,8 @@ def login_process():
 
 @app.route('/logout')
 def logout():
-    logout_user()
+    if current_user.is_authenticated:
+        logout_user()
     return redirect(url_for('index'))
 
 
@@ -52,16 +52,56 @@ def home_view():
 
 @app.route('/courses')
 def courses_view():
-    level = request.args.get('difficulty')
-    kw = request.args.get('keyword')
-    page = request.args.get('page', 1, type=int)
+    if current_user.is_authenticated:
+        level = request.args.get('difficulty')
+        kw = request.args.get('keyword')
+        page = request.args.get('page', 1, type=int)
+        return render_template('courses.html', pages=math.ceil(dao.count_course(level, kw) / app.config["PAGE_SIZE"]),
+                               courses=dao.get_courses_filter(level, kw, page)
+                               , levels=enums.Level, total_courses=dao.sum_course_level())
+    return redirect(url_for('index'))
 
-    return render_template('courses.html', pages=math.ceil(dao.count_course(level, kw) / app.config["PAGE_SIZE"]),
-                           courses=dao.get_courses_filter(level, kw, page)
-                           , levels=enums.Level)
+
+@app.route('/api/courses/<int:course_id>', methods=['GET'])
+def get_course_api(course_id):
+    course = dao.get_course_by_id(course_id)
+    if course:
+        return jsonify(
+            {
+                'id': course.id,
+                'name': course.name,
+                'level': course.level.value,
+                'status': course.status.value,
+                'description': course.description
+            }
+        )
+
+    else:
+        return jsonify({'error': 'Course not found'}), 404
+
+
+@app.route('/api/courses/<int:course_id>/classes', methods=['GET'])
+def get_classes_by_course_api(course_id):
+    classes = dao.get_course_by_id(course_id).classes
+
+    if classes:
+        class_list = []
+        for c in classes:
+            class_list.append({
+                'id': c.id,
+                'instructor': c.instructor.name,
+                'name': c.name,
+                'max_students': c.max_students
+            })
+        return jsonify(class_list)
+    return jsonify({
+        'error': 'Classes not found'
+    })
 
 
 if __name__ == '__main__':
     # with app.app_context():
     #     db.create_all()
+    import admin
+
     app.run(debug=True)
