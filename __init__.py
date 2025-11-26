@@ -2,6 +2,13 @@ from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_login import LoginManager
+import logging
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker
+
+# Enable logging for SQLAlchemy
+logging.basicConfig()
+logging.getLogger('sqlalchemy.engine').setLevel(logging.INFO)
 
 CLOUDINARY_URL = "CLOUDINARY_URL=cloudinary://564538134111238:klHdvvFm74zNV7Q0pObFns3PEwE@dkjmnoilv"
 CLOUDINARY_KEY = "564538134111238"

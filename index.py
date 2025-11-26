@@ -38,9 +38,11 @@ def login_process():
 
     return render_template('index.html', err_mgs='Sai mật khẩu hoặc tài khoản')
 
+
 @app.route('/register')
 def register_view():
     return render_template('register.html')
+
 
 @app.route('/register', methods=['POST'])
 def register_process():
@@ -51,6 +53,7 @@ def register_process():
         err_msg = 'Mật Khẩu Không Khớp!'
         return render_template('register.html', err_msg=err_msg)
     avatar = request.files['avatar']
+
 
 @app.route('/logout')
 def logout():
@@ -67,8 +70,9 @@ def load_user(user_id):
 @app.route('/home')
 def home_view():
     if current_user.is_authenticated:
-        return render_template('home.html')
+        return render_template('home.html', enrollment=dao.get_enrollment_by_user(current_user.id))
     return redirect(url_for('index'))
+
 
 @app.route('/admins')
 @login_required
@@ -76,6 +80,7 @@ def admin_home_view():
     if current_user.is_authenticated:
         return render_template('admin_home.html')
     return redirect(url_for('index'))
+
 
 @app.route('/admins/baocao')
 @login_required
@@ -92,6 +97,7 @@ def admin_baocao_view():
         current_page=current_page
     )
 
+
 @app.route('/admins/rules')
 def admin_rules_view():
     rules_data = {
@@ -107,6 +113,7 @@ def admin_rules_view():
         'admin_quydinh.html',
         rules=rules_data
     )
+
 
 @app.route('/courses')
 def courses_view():
@@ -159,6 +166,65 @@ def get_classes_by_course_api(course_id):
 @app.route('/giang-vien/bang-diem')
 def instructor_home_view():
     return render_template('giaovienindex.html')
+
+@app.route('/api/user', methods=['GET'])
+def get_user_api():
+    if current_user.is_authenticated:
+        return jsonify(
+            {
+                'id': current_user.id,
+                'name': current_user.name,
+                'username': current_user.username,
+                'role': current_user.role.value,
+            }
+        )
+    return jsonify(
+        {
+            'error': 'Not login'
+        }
+    )
+
+
+@app.route('/api/courses/register', methods=['POST'])
+def register_course_api():
+    body = request.json
+
+    if dao.register_course(body['user_id'], body['class_id']):
+        db.session.commit()
+        return jsonify({
+            'msg': 'success'
+        })
+
+    return jsonify({
+        'error': 'error'
+    })
+
+
+@app.route('/api/enrollment/delete/<int:user_id>/<int:class_id>', methods=['DELETE'])
+def delete_enrollment_api(user_id, class_id):
+    enrollment = dao.get_enrollment(user_id, class_id)
+    if enrollment:
+        if dao.delete_enrollment(enrollment):
+            return jsonify({
+                'msg': 'success'
+            })
+        else:
+            return jsonify({
+                'error': 'cannot delete enrollment'
+            })
+    else:
+        return jsonify({
+            'error': 'enrollment not found'
+        })
+
+
+@app.route('/test')
+def test_view():
+    enrollment = dao.get_enrollment_by_user(current_user.id)
+    print(len(enrollment))
+
+    return 'Test Page'
+
 
 if __name__ == '__main__':
     # with app.app_context():
