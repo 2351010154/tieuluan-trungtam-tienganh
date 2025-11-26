@@ -1,6 +1,6 @@
 from flask_login import UserMixin
 from werkzeug.security import generate_password_hash, check_password_hash
-from sqlalchemy import Enum
+from sqlalchemy import Enum, UniqueConstraint, Index
 
 from __init__ import db, app
 from enums import Role, Level, Status
@@ -36,6 +36,12 @@ class Enrollment(BaseModel):
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False, primary_key=True)
     class_id = db.Column(db.Integer, db.ForeignKey('class.id'), nullable=False, primary_key=True)
 
+    __table_args__ = (
+        UniqueConstraint('user_id', 'class_id'),
+    )
+
+    enroll_date = db.Column(db.DateTime, nullable=False, default=db.func.current_timestamp())
+
 
 class Class(BaseModel):
     name = db.Column(db.String(255), nullable=False)
@@ -55,6 +61,7 @@ class Course(BaseModel):
     name = db.Column(db.String(255), nullable=False)
     level = db.Column(Enum(Level), nullable=False)
     status = db.Column(Enum(Status), nullable=False)
+    price = db.Column(db.Integer, nullable=False, default=0.0)
     description = db.Column(db.Text, nullable=True)
 
     def __str__(self):
@@ -70,181 +77,191 @@ if __name__ == "__main__":
                 "name": "Introduction to Digital Marketing",
                 "level": "BEGINNER",
                 "status": "ONLINE",
-                "description": "Learn the fundamentals of digital marketing, including SEO, social media marketing, and content creation."
+                "description": "Learn the fundamentals of digital marketing, including SEO, social media marketing, and content creation.",
+                "price": 500000
             },
             {
                 "name": "Web Development Basics",
                 "level": "BEGINNER",
                 "status": "ONLINE",
-                "description": "Get started with web development, covering HTML, CSS, and basic JavaScript to build your first website."
+                "description": "Get started with web development, covering HTML, CSS, and basic JavaScript to build your first website.",
+                "price": 400000
             },
             {
                 "name": "Advanced Python Programming",
                 "level": "ADVANCED",
                 "status": "ONLINE",
-                "description": "Master advanced Python concepts including decorators, generators, and working with APIs."
+                "description": "Master advanced Python concepts including decorators, generators, and working with APIs.",
+                "price": 800000
             },
             {
                 "name": "Creative Writing for Beginners",
                 "level": "BEGINNER",
                 "status": "ONLINE",
-                "description": "Unleash your creativity and learn the basics of writing fiction, poetry, and short stories."
+                "description": "Unleash your creativity and learn the basics of writing fiction, poetry, and short stories.",
+                "price": 30000000
             },
             {
                 "name": "Social Media Marketing for Business",
                 "level": "INTERMEDIATE",
                 "status": "ONLINE",
-                "description": "Learn how to use social media to grow your business, engage with customers, and increase sales."
+                "description": "Learn how to use social media to grow your business, engage with customers, and increase sales.",
+                "price": 60000000
             },
             {
                 "name": "Data Science with R",
                 "level": "INTERMEDIATE",
                 "status": "ONLINE",
-                "description": "Dive into data science using the R programming language, covering data cleaning, analysis, and visualization."
+                "description": "Dive into data science using the R programming language, covering data cleaning, analysis, and visualization.",
+                "price": 70
             },
             {
                 "name": "Mobile App Development with Flutter",
                 "level": "INTERMEDIATE",
                 "status": "ONLINE",
-                "description": "Learn how to build mobile applications for both Android and iOS using Flutter and Dart."
+                "description": "Learn how to build mobile applications for both Android and iOS using Flutter and Dart.",
+                "price": 70
             },
             {
                 "name": "Public Speaking and Communication Skills",
                 "level": "BEGINNER",
                 "status": "ONLINE",
-                "description": "Develop your public speaking skills and learn how to communicate effectively in front of an audience."
+                "description": "Develop your public speaking skills and learn how to communicate effectively in front of an audience.",
+                "price": 50
             },
             {
                 "name": "Graphic Design Fundamentals",
                 "level": "BEGINNER",
                 "status": "ONLINE",
-                "description": "Learn the basics of graphic design, including color theory, typography, and using design software like Adobe Photoshop."
+                "description": "Learn the basics of graphic design, including color theory, typography, and using design software like Adobe Photoshop.",
+                "price": 50
             },
             {
                 "name": "Project Management for Beginners",
                 "level": "BEGINNER",
                 "status": "ONLINE",
-                "description": "Understand the basics of project management, from planning to execution, and how to manage teams and timelines."
+                "description": "Understand the basics of project management, from planning to execution, and how to manage teams and timelines.",
+                "price": 60
             }
         ]
 
         classes = [
             {
-                "name": "Mobile App Development with Flutter - Morning Session",
+                "name": "IT1",
                 "course_id": 1,
                 "instructor_id": 1,
                 "max_students": 18
             },
             {
-                "name": "Mobile App Development with Flutter - Evening Session",
+                "name": "IT2",
                 "course_id": 1,
                 "instructor_id": 2,
                 "max_students": 18
             },
             {
-                "name": "Web Development with React - Morning Session",
+                "name": "IT3",
                 "course_id": 2,
                 "instructor_id": 3,
                 "max_students": 18
             },
             {
-                "name": "Web Development with React - Evening Session",
+                "name": "IT4",
                 "course_id": 2,
                 "instructor_id": 4,
                 "max_students": 18
             },
             {
-                "name": "Data Science with Python - Morning Session",
+                "name": "IT5",
                 "course_id": 3,
                 "instructor_id": 5,
                 "max_students": 18
             },
             {
-                "name": "Data Science with Python - Evening Session",
+                "name": "IT6",
                 "course_id": 3,
                 "instructor_id": 6,
                 "max_students": 18
             },
             {
-                "name": "Machine Learning - Morning Session",
+                "name": "IT7",
                 "course_id": 4,
                 "instructor_id": 7,
                 "max_students": 18
             },
             {
-                "name": "Machine Learning - Evening Session",
+                "name": "IT8",
                 "course_id": 4,
                 "instructor_id": 8,
                 "max_students": 18
             },
             {
-                "name": "Mobile App Development with React Native - Morning Session",
+                "name": "IT9",
                 "course_id": 5,
                 "instructor_id": 9,
                 "max_students": 18
             },
             {
-                "name": "Mobile App Development with React Native - Evening Session",
+                "name": "IT10",
                 "course_id": 5,
                 "instructor_id": 10,
                 "max_students": 18
             },
             {
-                "name": "UI/UX Design Principles - Morning Session",
+                "name": "IT11",
                 "course_id": 6,
                 "instructor_id": 1,
                 "max_students": 18
             },
             {
-                "name": "UI/UX Design Principles - Evening Session",
+                "name": "IT12",
                 "course_id": 6,
                 "instructor_id": 2,
                 "max_students": 18
             },
             {
-                "name": "Android Development - Morning Session",
+                "name": "IT13",
                 "course_id": 7,
                 "instructor_id": 3,
                 "max_students": 18
             },
             {
-                "name": "Android Development - Evening Session",
+                "name": "IT14",
                 "course_id": 7,
                 "instructor_id": 4,
                 "max_students": 18
             },
             {
-                "name": "iOS Development with Swift - Morning Session",
+                "name": "IT15",
                 "course_id": 8,
                 "instructor_id": 5,
                 "max_students": 18
             },
             {
-                "name": "iOS Development with Swift - Evening Session",
+                "name": "IT16",
                 "course_id": 8,
                 "instructor_id": 6,
                 "max_students": 18
             },
             {
-                "name": "Cloud Computing - Morning Session",
+                "name": "IT17",
                 "course_id": 9,
                 "instructor_id": 7,
                 "max_students": 18
             },
             {
-                "name": "Cloud Computing - Evening Session",
+                "name": "IT18",
                 "course_id": 9,
                 "instructor_id": 8,
                 "max_students": 18
             },
             {
-                "name": "Blockchain Development - Morning Session",
+                "name": "IT19",
                 "course_id": 10,
                 "instructor_id": 9,
                 "max_students": 18
             },
             {
-                "name": "Blockchain Development - Evening Session",
+                "name": "IT20",
                 "course_id": 10,
                 "instructor_id": 10,
                 "max_students": 18
@@ -271,6 +288,8 @@ if __name__ == "__main__":
             {"username": "instructor_hannah", "password": "1", "name": "Hannah Brooks", "role": Role.INSTRUCTOR},
             {"username": "admin", "password": "1", "role": Role.ADMIN},
             {"username": "student", "password": "1", "role": Role.STUDENT},
+            {"username": "student2", "password": "1", "role": Role.STUDENT},
+            {"username": "student3", "password": "1", "role": Role.STUDENT},
         ]
         for u in users:
             user = User(username=u['username'], role=u['role'], name=u.get('name', 'User'))

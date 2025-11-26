@@ -4,84 +4,63 @@
 <body>
 <div class="wrapper">
     {% include 'sidebar.html' %}
-    <div class="main p-12">
+    <div class="main">
         <div class="d-flex flex-column ">
             <div class="d-flex flex-row pb-3 align-items-center">
                 <p class="fw-bold fs-2">Khoá học</p>
                 <button class="btn btn-primary ms-auto ">Đã thanh toán</button>
             </div>
-            <div class="row course-list">
-                <div class="course-card col">
-                    <div class="d-flex flex-row">
-                        <div class="difficulty-badge">
-                            <p>Advanced</p>
-                        </div>
-                    </div>
-                    <div class="h-3"></div>
-                    <div class="d-flex flex-row">
-                        <p class="course-title">Tiếng Anh Nâng Cao 4</p>
-                    </div>
-                    <hr class="my-2">
-                    <div class="d-flex flex-row">
-                        <div class="d-flex flex-column">
-                            <p class="course-price">2.400.000</p>
-                            <p class="me-auto font-weight-light">Price</p>
-                        </div>
-                        <div class="d-flex flex-column ms-auto">
-                            <p class="course-price">IT13</p>
-                            <p class="ms-auto font-weight-light">Lớp</p>
-                        </div>
-                    </div>
-                </div>
 
-                <div class="course-card col">
-                    <div class="d-flex flex-row">
-                        <div class="difficulty-badge">
-                            <p>Advanced</p>
-                        </div>
-                    </div>
-                    <div class="h-3"></div>
-                    <div class="d-flex flex-row">
-                        <p class="course-title">Tiếng Anh Nâng Cao 4</p>
-                    </div>
-                    <hr class="my-2">
-                    <div class="d-flex flex-row">
-                        <div class="d-flex flex-column">
-                            <p class="course-price">2.400.000</p>
-                            <p class="me-auto font-weight-light">Price</p>
-                        </div>
-                        <div class="d-flex flex-column ms-auto">
-                            <p class="course-price">IT13</p>
-                            <p class="ms-auto font-weight-light">Lớp</p>
-                        </div>
-                    </div>
-                </div>
+            {% if enrollment|length >= 1 %}
+            <div class="home-courses">
 
-                <div class="course-card col">
-                    <div class="d-flex flex-row">
-                        <div class="difficulty-badge">
-                            <p>Advanced</p>
+                {% for i in range(0, enrollment|length, 3) %}
+                <div class="row course-list">
+                    <div class="d-flex flex-row gap-3">
+                        {% for e, class_, course in enrollment[i:i+3] %}
+
+                        <div class="course-card col-md-4" data-user-id="{{ e.user_id }}"
+                             data-class-id="{{ e.class_id }}">
+                            <div class="d-flex flex-row align-items-center">
+                                <div class="difficulty-badge">
+                                    <p>{{ course.level.value }}</p>
+                                </div>
+                                <button class="ms-auto delete-course-btn">
+                                    {% include '/svg/bin.html' %}
+                                </button>
+                            </div>
+                            <div class="h-3"></div>
+                            <div class="d-flex flex-row">
+                                <p class="course-title">{{ course }}</p>
+                            </div>
+                            <hr class="my-2">
+                            <div class="d-flex flex-row">
+                                <div class="d-flex flex-column">
+                                    <p class="course-price">{{ course.price }}</p>
+                                    <p class="me-auto font-weight-light">Price</p>
+                                </div>
+                                <div class="d-flex flex-column ms-auto">
+                                    <p class="course-price">{{ class_ }}</p>
+                                    <p class="ms-auto font-weight-light">Lớp</p>
+                                </div>
+                            </div>
                         </div>
-                    </div>
-                    <div class="h-3"></div>
-                    <div class="d-flex flex-row">
-                        <p class="course-title">Tiếng Anh Nâng Cao 4</p>
-                    </div>
-                    <hr class="my-2">
-                    <div class="d-flex flex-row">
-                        <div class="d-flex flex-column">
-                            <p class="course-price">2.400.000</p>
-                            <p class="me-auto font-weight-light">Price</p>
-                        </div>
-                        <div class="d-flex flex-column ms-auto">
-                            <p class="course-price">IT13</p>
-                            <p class="ms-auto font-weight-light">Lớp</p>
-                        </div>
+
+                        {% endfor %}
                     </div>
                 </div>
+                {% endfor %}
             </div>
+
+            {% else %}
+            <p class="mx-auto my-auto mt-5">Chưa đăng ký khoá học</p>
+            {% endif %}
+
+
         </div>
     </div>
 </div>
 </body>
 {% endblock %}
+
+

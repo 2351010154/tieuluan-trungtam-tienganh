@@ -63,19 +63,19 @@
 
         {% for c in courses %}
         <div class="course-info-card mb-3" data-course-id="{{ c.id }}">
-            <div class="d-flex flex-column gap-2">
+            <div class="d-flex flex-column gap-3">
                 <p class="fw-bold course-title mb-2">{{ c.name }}</p>
                 <div class="w-300">
                     <p class="fw-light">{{ c.description }}</p>
                 </div>
                 <div class="d-flex flex-row ms-auto gap-2">
-                    <button id="view-details" class="btn-basic" style="border: 1px solid #e2e8f0;">Chi tiết</button>
+                    <button class="btn-basic view-details" style="border: 1px solid #e2e8f0;">Chi
+                        tiết
+                    </button>
                     <button type="button" data-bs-toggle="modal" data-bs-target="#modal"
                             class="btn-basic course-enroll"
-                            style="border: 1px solid #3b82f6;">Đăng ký
+                            style="border: 1px solid #3b82f6; color:#3b82f6">Đăng ký
                     </button>
-
-
                 </div>
             </div>
         </div>
@@ -84,8 +84,7 @@
         <div id="modal" class="modal fade">
             <div class="modal-dialog modal-dialog-centered">
                 <div class="modal-content p-4 gap-3 d-flex flex-column">
-                    <h5 class="modal-title fw-bold " id="enroll-title"></h5>
-                    <div class="h-2"></div>
+                    <h5 class="modal-title fw-bold ps-2" id="enroll-title"></h5>
                     <div class="form-floating ">
                         <select class="form-select custom-form-field"
                                 id="enroll-class-select">
@@ -110,12 +109,14 @@
 
 
                     <div class="h-10"></div>
-                    <button class="btn btn-primary">Close</button>
+                    <p id="enroll-error" class="mx-auto"></p>
+                    <button class="btn btn-primary" id="course-register">Xác nhận</button>
                 </div>
             </div>
         </div>
 
     </div>
 </div>
+<script src="{{ url_for('static', filename='scripts/courses.js') }}"></script>
 
 {% endblock %}

@@ -2,88 +2,42 @@
 
  hamburger.addEventListener("click",function() {
     document.querySelector("#sidebar").classList.toggle("expand");
- })
+ });
 
-const enroll_buttons = document.querySelectorAll('.course-enroll');
-
-enroll_buttons.forEach((button) => {
-    button.addEventListener("click", function() {
-        courseCard = button.closest('.course-info-card');
-        course_id = courseCard.dataset.courseId;
-
-        title = document.getElementById('enroll-title');
-        level = document.getElementById('enroll-level');
+delete_buttons = document.querySelectorAll('.delete-course-btn');
+delete_buttons.forEach((button) => {
+    button.addEventListener('click', async function() {
+        courseCard = button.closest('.course-card');
+        user_id = courseCard.getAttribute('data-user-id');
+        class_id = courseCard.getAttribute('data-class-id');
 
         try {
-             classSelectLoader(course_id);
-        } catch (error) {
-            console.log('Error:', error);
-        }
-
-        level.disabled = false;
-
-        fetch(`/api/courses/${course_id}`).then(response => response.json()).then(data => {
-            title.textContent = data['name'];
-            level.value = data['level'];
-            console.log(data);
-        }).catch(error => {
-            console.log('Error:', error);
-        })
-        level.disabled = true;
-
-    })
-})
-
-const enrollSelect = document.getElementById('enroll-class-select')
-const instructorLabel = document.getElementById('enroll-instructor');
-function classSelectLoader(course_id) {
-    fetch(`/api/courses/${course_id}/classes`).then(response => response.json())
-    .then(classes => {
-
-        //rset options
-        enrollSelect.innerHTML = '';
-        if (classes.length != 0) {
-                if (classes[0]['instructor'] != null) {
-            instructorLabel.value = classes[0]['instructor'];
+            response = await fetch(`/api/enrollment/delete/${user_id}/${class_id}`, {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json',
+                }
+            });
+            data = await response.json();
+            if (data['error']) {
+                console.log('error: ', data['error']);
+            } else {
+                window.location.reload();
             }
+        } catch (error) {
+            console.log('error: ', error);
         }
-
-        classes.forEach((classItem) => {
-
-
-
-            option = document.createElement('option');
-
-            option.value = classItem['id']
-            option.textContent = classItem['name']
-            option.setAttribute('data-instructor', classItem['instructor'])
-
-            enrollSelect.appendChild(option);
-        });
-
-    }).catch(error => {
-        console.log('Error:', error);
     })
-}
-enrollSelect.addEventListener('change', function() {
-    selectedOption = enrollSelect.options[enrollSelect.selectedIndex];
-    instructorName = selectedOption.getAttribute('data-instructor');
-    instructorLabel.value = instructorName;
 })
 
 
+//detailsBtn = document.getElementById('view-details');
+//detailsBtn.addEventListener('click', function() {
+//    console.log('test');
+//
+//})
 
 
-let debounceTimeOut = null;
-function debounceSearch() {
-    var searchForm = document.getElementById('search-form');
 
-    if (debounceTimeOut != null) {
-        clearTimeout(debounceTimeOut);
-    }
-    debounceTimeOut = setTimeout(() => {
-        searchForm.submit();
-    },500);
-}
 
 
