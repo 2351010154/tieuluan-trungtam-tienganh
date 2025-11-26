@@ -9,7 +9,7 @@ CLOUDINARY_SECRET = "klHdvvFm74zNV7Q0pObFns3PEwE"
 
 app = Flask(__name__)
 app.secret_key = "secret"
-app.config["SQLALCHEMY_DATABASE_URI"] = "mysql+pymysql://root:root@localhost/englishdb?charset=utf8mb4"
+app.config["SQLALCHEMY_DATABASE_URI"] = "mysql+pymysql://root:120505Hh@localhost/englishdb?charset=utf8mb4"
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 app.config["PAGE_SIZE"] = 4
 
