@@ -35,6 +35,8 @@ def login_process():
         elif user.role == Role.STUDENT:
             return redirect(url_for('home_view'))
 
+        user.role == Role.
+
     return render_template('index.html', err_mgs='Sai mật khẩu hoặc tài khoản')
 
 @app.route('/register')
