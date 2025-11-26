@@ -21,7 +21,7 @@
             </a>
         </li>
         <li class="sidebar-item">
-            <a {% if request.path== '/courses' %}
+            <a {% if request.path == '/courses' %}
             class ="sidebar-link active" href="#"
             {% else %}
             class="sidebar-link" href="{{ url_for('courses_view') }}"

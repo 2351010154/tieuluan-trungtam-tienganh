@@ -1,13 +1,12 @@
 import math
 
-from flask import render_template, session, request, url_for
+from flask import render_template, session, request, url_for, jsonify
 from flask_login import current_user, logout_user, login_user, login_required
 from werkzeug.utils import redirect
 from models import Role
 
 import dao
 import enums
-from admin import admin
 
 from __init__ import app, db, login_manager
 from models import User
@@ -20,7 +19,7 @@ def index():
     return render_template('index.html')
 
 
-@app.route('/login', methods=['GET', 'POST'])
+@app.route('/login', methods=['POST'])
 def login_process():
     username = request.form['username']
     password = request.form['password']
@@ -39,9 +38,11 @@ def login_process():
 
     return render_template('index.html', err_mgs='Sai mật khẩu hoặc tài khoản')
 
+
 @app.route('/register')
 def register_view():
     return render_template('register.html')
+
 
 @app.route('/register', methods=['POST'])
 def register_process():
@@ -53,9 +54,11 @@ def register_process():
         return render_template('register.html', err_msg=err_msg)
     avatar = request.files['avatar']
 
+
 @app.route('/logout')
 def logout():
-    logout_user()
+    if current_user.is_authenticated:
+        logout_user()
     return redirect(url_for('index'))
 
 
@@ -67,17 +70,19 @@ def load_user(user_id):
 @app.route('/home')
 def home_view():
     if current_user.is_authenticated:
-        return render_template('home.html')
+        return render_template('home.html', enrollment=dao.get_enrollment_by_user(current_user.id))
     return redirect(url_for('index'))
 
-@app.route('/admin')
+
+@app.route('/admins')
 @login_required
 def admin_home_view():
     if current_user.is_authenticated:
         return render_template('admin_home.html')
     return redirect(url_for('index'))
 
-@app.route('/admin/baocao')
+
+@app.route('/admins/baocao')
 @login_required
 def admin_baocao_view():
     total_records = 50
@@ -92,7 +97,8 @@ def admin_baocao_view():
         current_page=current_page
     )
 
-@app.route('/admin/rules')
+
+@app.route('/admins/rules')
 def admin_rules_view():
     rules_data = {
         "max_students": 25,
@@ -108,18 +114,118 @@ def admin_rules_view():
         rules=rules_data
     )
 
+
 @app.route('/courses')
 def courses_view():
-    level = request.args.get('difficulty')
-    kw = request.args.get('keyword')
-    page = request.args.get('page', 1, type=int)
+    if current_user.is_authenticated:
+        level = request.args.get('difficulty')
+        kw = request.args.get('keyword')
+        page = request.args.get('page', 1, type=int)
+        return render_template('courses.html', pages=math.ceil(dao.count_course(level, kw) / app.config["PAGE_SIZE"]),
+                               courses=dao.get_courses_filter(level, kw, page)
+                               , levels=enums.Level, total_courses=dao.sum_course_level())
+    return redirect(url_for('index'))
 
-    return render_template('courses.html', pages=math.ceil(dao.count_course(level, kw) / app.config["PAGE_SIZE"]),
-                           courses=dao.get_courses_filter(level, kw, page)
-                           , levels=enums.Level)
+
+@app.route('/api/courses/<int:course_id>', methods=['GET'])
+def get_course_api(course_id):
+    course = dao.get_course_by_id(course_id)
+    if course:
+        return jsonify(
+            {
+                'id': course.id,
+                'name': course.name,
+                'level': course.level.value,
+                'status': course.status.value,
+                'description': course.description
+            }
+        )
+
+    else:
+        return jsonify({'error': 'Course not found'}), 404
+
+
+@app.route('/api/courses/<int:course_id>/classes', methods=['GET'])
+def get_classes_by_course_api(course_id):
+    classes = dao.get_course_by_id(course_id).classes
+
+    if classes:
+        class_list = []
+        for c in classes:
+            class_list.append({
+                'id': c.id,
+                'instructor': c.instructor.name,
+                'name': c.name,
+                'max_students': c.max_students
+            })
+        return jsonify(class_list)
+    return jsonify({
+        'error': 'Classes not found'
+    })
+
+
+@app.route('/api/user', methods=['GET'])
+def get_user_api():
+    if current_user.is_authenticated:
+        return jsonify(
+            {
+                'id': current_user.id,
+                'name': current_user.name,
+                'username': current_user.username,
+                'role': current_user.role.value,
+            }
+        )
+    return jsonify(
+        {
+            'error': 'Not login'
+        }
+    )
+
+
+@app.route('/api/courses/register', methods=['POST'])
+def register_course_api():
+    body = request.json
+
+    if dao.register_course(body['user_id'], body['class_id']):
+        db.session.commit()
+        return jsonify({
+            'msg': 'success'
+        })
+
+    return jsonify({
+        'error': 'error'
+    })
+
+
+@app.route('/api/enrollment/delete/<int:user_id>/<int:class_id>', methods=['DELETE'])
+def delete_enrollment_api(user_id, class_id):
+    enrollment = dao.get_enrollment(user_id, class_id)
+    if enrollment:
+        if dao.delete_enrollment(enrollment):
+            return jsonify({
+                'msg': 'success'
+            })
+        else:
+            return jsonify({
+                'error': 'cannot delete enrollment'
+            })
+    else:
+        return jsonify({
+            'error': 'enrollment not found'
+        })
+
+
+@app.route('/test')
+def test_view():
+    enrollment = dao.get_enrollment_by_user(current_user.id)
+    print(len(enrollment))
+
+    return 'Test Page'
 
 
 if __name__ == '__main__':
     # with app.app_context():
     #     db.create_all()
+    import admin
+
     app.run(debug=True)
