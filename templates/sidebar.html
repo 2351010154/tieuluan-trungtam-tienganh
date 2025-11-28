@@ -71,6 +71,18 @@
             <span>Thay đổi quy định</span>
             </a>
         </li>
+        {% elif current_user.role.name == 'INSTRUCTOR' %}
+        <li class="sidebar-item">
+            <a {% if request.path== '/giang-vien/bang-diem' %}
+            class="sidebar-link active" href="#"
+            {% else %}
+            class="sidebar-link" href="{{ url_for('instructor_home_view') }}"
+            {% endif %}
+            >
+            <i class="lni lni-bookmark-1"></i>
+            <span>Quản lý điểm</span>
+            </a>
+        </li>
         {% endif %}
     </ul>
     <div class="sidebar-footer mx-auto" style="color:white">

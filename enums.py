@@ -7,7 +7,6 @@ class Role(Enum):
     CASHIER = "Cashier"
     STUDENT = "Student"
 
-
 class Level(Enum):
     BEGINNER = "Beginner"
     INTERMEDIATE = "Intermediate"

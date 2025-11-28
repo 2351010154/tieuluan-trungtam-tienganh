@@ -35,6 +35,8 @@ def login_process():
             return redirect(url_for('admin_home_view'))
         elif user.role == Role.STUDENT:
             return redirect(url_for('home_view'))
+        elif user.role == Role.INSTRUCTOR:
+            return redirect(url_for('instructor_home_view'))
 
     return render_template('index.html', err_mgs='Sai mật khẩu hoặc tài khoản')
 
@@ -165,6 +167,9 @@ def get_classes_by_course_api(course_id):
         'error': 'Classes not found'
     })
 
+@app.route('/giang-vien/bang-diem')
+def instructor_home_view():
+    return render_template('giaovienindex.html')
 
 @app.route('/api/user', methods=['GET'])
 def get_user_api():
