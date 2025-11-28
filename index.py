@@ -171,6 +171,10 @@ def get_classes_by_course_api(course_id):
 def instructor_home_view():
     return render_template('giaovienindex.html')
 
+@app.route('/giang-vien/diem-danh')
+def instructor_attendance_view():
+    return render_template('GiaoVien_DiemDanh.html')
+
 @app.route('/api/user', methods=['GET'])
 def get_user_api():
     if current_user.is_authenticated:

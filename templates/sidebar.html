@@ -21,7 +21,7 @@
             </a>
         </li>
         <li class="sidebar-item">
-            <a {% if request.path == '/courses' %}
+            <a {% if request.path== '/courses' %}
             class ="sidebar-link active" href="#"
             {% else %}
             class="sidebar-link" href="{{ url_for('courses_view') }}"
@@ -81,6 +81,17 @@
             >
             <i class="lni lni-bookmark-1"></i>
             <span>Quản lý điểm</span>
+            </a>
+        </li>
+        <li class="sidebar-item">
+            <a {% if request.path== '/giang-vien/diem-danh' %}
+            class="sidebar-link active" href="#"
+            {% else %}
+            class="sidebar-link" href="{{ url_for('instructor_attendance_view') }}"
+            {% endif %}
+            >
+            <i class="lni lni-bookmark-1"></i>
+            <span class="ps-2">Điểm danh</span>
             </a>
         </li>
         {% endif %}
