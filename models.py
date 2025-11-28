@@ -35,9 +35,11 @@ class User(BaseModel, UserMixin):
 class Enrollment(BaseModel):
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False, primary_key=True)
     class_id = db.Column(db.Integer, db.ForeignKey('class.id'), nullable=False, primary_key=True)
+    course_id = db.Column(db.Integer, nullable=False)
 
     __table_args__ = (
         UniqueConstraint('user_id', 'class_id'),
+        UniqueConstraint('user_id', 'course_id'),
     )
 
     enroll_date = db.Column(db.DateTime, nullable=False, default=db.func.current_timestamp())
@@ -61,7 +63,7 @@ class Course(BaseModel):
     name = db.Column(db.String(255), nullable=False)
     level = db.Column(Enum(Level), nullable=False)
     status = db.Column(Enum(Status), nullable=False)
-    price = db.Column(db.Integer, nullable=False, default=0.0)
+    price = db.Column(db.Float, nullable=False, default=0.0)
     description = db.Column(db.Text, nullable=True)
 
     def __str__(self):

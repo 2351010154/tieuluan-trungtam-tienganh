@@ -83,29 +83,28 @@ enrollSelect.addEventListener('change', function() {
 
 registerBtn = document.getElementById('course-register')
 registerBtn.addEventListener('click', async function() {
-//        fetch('/api/user').then(response => response.json()).then(userData => {
-//            user_id = userData['id'];
-//            class_id = parseInt(enrollSelect.value);
-//            courseRegister(user_id, class_id).then(response => {
-//                let modal = bootstrap.Modal.getInstance(document.getElementById("modal"));
-//                modal.hide();
-//            }).catch(error => {
-//                enroll_err_label.classList.add("show");
-//                enroll_err_label.textContent = "Đã đăng ký lớp học này trước đó.";
-//            });
-//        })
           const response = await fetch('/api/user');
           const user = await response.json();
           const user_id = user['id'];
           const class_id = parseInt(enrollSelect.value);
 
           const register_response = await courseRegister(user_id, class_id);
+
+
+
           if (register_response.ok) {
+                const json_response = await register_response.json();
+
+                if (json_response['error']) {
+                    enroll_err_label.classList.add("show");
+                    enroll_err_label.textContent = json_response['error'];
+                    return;
+                }
                 let modal = bootstrap.Modal.getInstance(document.getElementById("modal"));
                 modal.hide();
           } else {
                 enroll_err_label.classList.add("show");
-                enroll_err_label.textContent = "Đã đăng ký lớp học này trước đó.";
+                enroll_err_label.textContent = "Đã đăng ký khoá học này trước đó.";
           }
     }
 )

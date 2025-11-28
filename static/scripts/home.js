@@ -12,7 +12,7 @@ delete_buttons.forEach((button) => {
         class_id = courseCard.getAttribute('data-class-id');
 
         try {
-            response = await fetch(`/api/enrollment/delete/${user_id}/${class_id}`, {
+            response = await fetch(`/api/enrollment/${user_id}/${class_id}`, {
                 method: 'DELETE',
                 headers: {
                     'Content-Type': 'application/json',

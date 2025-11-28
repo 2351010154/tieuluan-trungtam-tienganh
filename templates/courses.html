@@ -9,9 +9,11 @@
             <input id="course-search" name="keyword" class="form-control w-75" type="search" placeholder="Search"
                    aria-label="Search"
                    oninput="debounceSearch()"/>
-            {% if request.args.get('difficulty') %}
-            <input type="hidden" name="difficulty" value="{{ request.args.get('difficulty') }}">
+            {% for k, v in request.args.items() %}
+            {% if k != 'keyword' %}
+            <input type="hidden" name="{{ k }}" value="{{ v }}">
             {% endif %}
+            {% endfor %}
         </form>
 
         <div class="h-4"></div>
@@ -21,12 +23,12 @@
             <a href="{{ url_for('courses_view')}} ">
                 <div class="dif-card {{ 'active' if not request.args.get('difficulty') else '' }}">
                     <p>Tổng khoá học</p>
-                    <p class="fw-bold fs-4">{{ total_courses.total }}</p>
+                    <p class="fw-bold fs-4">{{ total_courses[0] }}</p>
                 </div>
             </a>
 
             {% for l in levels %}
-            <a href="{{ url_for('courses_view', difficulty=l.value)}} ">
+            <a href="{{ url_for('courses_view', difficulty=l.value, keyword= request.args.get('keyword'), hide_enrolled = request.args.get('hide_enrolled') )}} ">
                 <div class="dif-card {{ 'active' if request.args.get('difficulty') == l.value else ''}}">
                     <p>{{ l.value }}</p>
                     <div class="d-flex flex-row">
@@ -42,15 +44,22 @@
         <div class="h-4"></div>
 
         <div class="d-flex flex-row align-items-center">
-            <button class="btn">Ẩn đã chọn</button>
+            <a href="{{ url_for('courses_view', hide_enrolled='true', difficulty = request.args.get('difficulty'), keyword=request.args.get('keyword')) }}">
+                <button class="btn hide-enrolled {{ 'active' if request.args.get('hide_enrolled') == 'true' else '' }}">
+                    Ẩn
+                    đã đăng
+                    ký
+                </button>
+            </a>
 
             {% if pages > 1 %}
             <nav class="ms-auto ">
                 <ul class="pagination m-0">
                     {% for p in range(1, pages + 1) %}
                     <li class="page-item"><a class="page-link"
-                                             href="{{ url_for('courses_view', page=p, difficulty=request.args.get('difficulty'), keyword=request.args.get('keyword')) }}">{{
-                        p }}</a>
+                                             href="{{ url_for('courses_view', page=p, difficulty=request.args.get('difficulty'), keyword=request.args.get('keyword')
+                                              , hide_enrolled =request.args.get('hide_enrolled')) }}">
+                        {{ p }}</a>
                     </li>
                     {% endfor %}
                 </ul>
