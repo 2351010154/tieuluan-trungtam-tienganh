@@ -5,7 +5,7 @@ from flask_login import current_user, logout_user, login_user, login_required
 from werkzeug.utils import redirect
 
 from dao import get_enrolled_courses_id
-from models import Role, only_current_user
+from models import Role
 
 import dao
 import enums
@@ -76,20 +76,6 @@ def home_view():
     return redirect(url_for('index'))
 
 
-@app.route('/invoice')
-def invoice_view():
-    if current_user.is_authenticated:
-        return render_template('invoice.html')
-    return redirect(url_for('index'))
-
-
-@app.route('/receipts')
-def receipts_view():
-    if current_user.is_authenticated:
-        return render_template('receipts.html')
-    return redirect(url_for('index'))
-
-
 @app.route('/admins')
 @login_required
 def admin_home_view():
@@ -153,7 +139,6 @@ def get_course_api(course_id):
             {
                 'id': course.id,
                 'name': course.name,
-                'price': course.price,
                 'level': course.level.value,
                 'status': course.status.value,
                 'description': course.description
@@ -182,11 +167,13 @@ def get_classes_by_course_api(course_id):
         'error': 'Classes not found'
     })
 
-
 @app.route('/giang-vien/bang-diem')
 def instructor_home_view():
     return render_template('giaovienindex.html')
 
+@app.route('/giang-vien/diem-danh')
+def instructor_attendance_view():
+    return render_template('GiaoVien_DiemDanh.html')
 
 @app.route('/api/user', methods=['GET'])
 def get_user_api():
@@ -223,13 +210,7 @@ def register_course_api():
 
 @app.route('/api/enrollment/<int:user_id>/<int:class_id>', methods=['DELETE'])
 def delete_enrollment_api(user_id, class_id):
-    if not only_current_user(user_id):
-        return jsonify({
-            'error': 'permission denied'
-        })
-
     enrollment = dao.get_enrollment(user_id, class_id)
-    print(enrollment.id)
     if enrollment:
         if dao.delete_enrollment(enrollment):
             return jsonify({
@@ -243,44 +224,6 @@ def delete_enrollment_api(user_id, class_id):
         return jsonify({
             'error': 'enrollment not found'
         })
-
-
-@app.route('/api/enrollment/<int:user_id>', methods=['GET'])
-def get_enrollment_api(user_id):
-    enrollment = dao.get_enrollment_by_user(user_id)
-    enrollment_list = []
-    for e, c, course in enrollment:
-        enrollment_list.append(
-            {
-                'id': e.id,
-                'course_name': course.name,
-                'course_price': course.price,
-                'class_name': c.name,
-                'course_level': course.level.value,
-            }
-        )
-    return jsonify(enrollment_list)
-
-
-@app.route('/api/invoice', methods=['POST'])
-def create_receipt():
-    if current_user.is_authenticated:
-        body = request.json
-        user_id = body.get('user_id')
-        enrollment_ids = body.get('enrollment_ids', [])
-        prices = body.get('prices', [])
-
-        if dao.add_receipt(user_id, enrollment_ids, prices):
-            return jsonify({
-                'msg': 'success'
-            })
-        else:
-            return jsonify({
-                'error': 'Đã tạo hoá đơn này rồi'
-            })
-    return jsonify({
-        'error': 'not login'
-    })
 
 
 @app.route('/test')
