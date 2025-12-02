@@ -9,7 +9,7 @@ from __init__ import app, db
 from flask_admin import Admin
 
 from enums import Role
-from models import User, Class, Course
+from models import User, Class, Course, Receipt
 
 
 class BaseModelView(ModelView):
@@ -49,3 +49,4 @@ admin = Admin(app)
 admin.add_view(UserAdmin(User, db.session))
 admin.add_view(CourseAdmin(Course, db.session))
 admin.add_view(ClassAdmin(Class, db.session))
+admin.add_view(ModelView(Receipt, db.session))

@@ -1,4 +1,5 @@
 const enroll_buttons = document.querySelectorAll('.course-enroll');
+const detail_buttons = document.querySelectorAll('.view-details');
 enroll_err_label = document.getElementById('enroll-error');
 
 enroll_buttons.forEach((button) => {
@@ -31,6 +32,60 @@ enroll_buttons.forEach((button) => {
 
     })
 })
+
+detail_buttons.forEach((button) => {
+    button.addEventListener('click', async function() {
+        courseInfoCard = button.closest('.course-info-card');
+        course_id = courseInfoCard.getAttribute('data-course-id');
+
+        detail_content = document.getElementById('detail-content');
+
+        response = await fetch(`/api/courses/${course_id}`);
+        course_json = await response.json();
+
+        title = document.getElementById('detail-title');
+        title.textContent = course_json['name'];
+        description = document.getElementById('detail-description');
+        description.textContent = course_json['description'];
+
+        detail_cards = document.getElementById('detail-cards');
+        detail_cards.innerHTML = "";
+        card_type = [
+            {
+                'name': 'Price',
+                'value': course_json['price'].toLocaleString(),
+                'icon': 'dollar.png',
+            },
+            {
+                'name': 'Level',
+                'value': course_json['level'],
+                'icon': 'star.png',
+            },
+            {
+                'name': 'Status',
+                'value': course_json['status'],
+                'icon': 'cloud.png',
+            },
+        ]
+
+        for (const type of card_type) {
+            const card = `
+                <div class="d-flex py-3 px-3 gap-2 detail-card">
+                    <div class="d-flex flex-row align-items-center gap-3">
+                        <img src="/static/images/${type.icon}"
+                             style="width:48px; height:48px;">
+                        <div class="d-flex flex-column">
+                            <p class="fs-4 fw-bold">${type.value}</p>
+                            <p class="opacity-50">${type.name}</p>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            detail_cards.innerHTML += card;
+        }
+    });
+});
 
 const enrollSelect = document.getElementById('enroll-class-select')
 const instructorLabel = document.getElementById('enroll-instructor');

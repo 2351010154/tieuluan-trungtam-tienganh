@@ -7,12 +7,18 @@ class Role(Enum):
     CASHIER = "Cashier"
     STUDENT = "Student"
 
+
 class Level(Enum):
     BEGINNER = "Beginner"
     INTERMEDIATE = "Intermediate"
     ADVANCED = "Advanced"
 
 
-class Status(Enum):
+class Mode(Enum):
     ONLINE = "Online"
     OFFLINE = "Offline"
+
+
+class Status(Enum):
+    PAID = "Paid"
+    PENDING = "Pending"

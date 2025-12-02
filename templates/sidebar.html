@@ -3,9 +3,6 @@
         <button id="toggle-btn" class="btn" type="button">
             {% include '/svg/hamburger.html' %}
         </button>
-        <button id="notif-btn" class="btn" type="button">
-            <i class="lni lni-bell-1"></i>
-        </button>
     </div>
     <ul class="sidebar-nav">
         {% if current_user.role.name == 'STUDENT' %}
@@ -32,9 +29,25 @@
             </a>
         </li>
         <li class="sidebar-item">
-            <a href="#" class="sidebar-link">
+            <a {% if request.path == '/invoice' %}
+                class="sidebar-link active" href="#"
+                {% else %}
+                class="sidebar-link" href="{{ url_for('invoice_view') }}"
+                {% endif %}
+            >
                 <i class="lni lni-bookmark-1"></i>
                 <span class="ps-2">Lập hoá đơn</span>
+            </a>
+        </li>
+        <li class="sidebar-item">
+            <a {% if request.path == '/receipts' %}
+                class="sidebar-link active" href="#"
+                {% else %}
+                class="sidebar-link" href="{{ url_for('receipts_view') }}"
+                {% endif %}
+            >
+                <i class="lni lni-bookmark-1"></i>
+                <span class="ps-2">Hioa don</span>
             </a>
         </li>
         {% elif current_user.role.name == 'ADMIN' %}

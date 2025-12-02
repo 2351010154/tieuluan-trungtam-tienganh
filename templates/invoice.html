@@ -1,0 +1,46 @@
+{% extends 'layout/base.html' %}
+{% block content %}
+<body>
+<div class="wrapper">
+    {% include 'sidebar.html' %}
+    <div class="main">
+        <div class="d-flex flex-column gap-3">
+            <p class="fs-4 text-center">Tạo hoá đơn</p>
+            <div>
+                <form class="form-floating" action="#">
+                    <input class="form-control custom-form-field w-25" id="invoice-id-submit" required>
+                    <label>Mã số sinh viên</label>
+                    <div class="h-10"></div>
+                    <table class="table">
+                        <thead class="table-dark">
+                        <tr>
+                            <th scope="col">Mã</th>
+                            <th scope="col">Tên khoá học</th>
+                            <th scope="col">Cấp độ</th>
+                            <th scope="col">Lớp</th>
+                            <th scope="col">Giá</th>
+                        </tr>
+                        </thead>
+                        <tbody id="invoice-table-content">
+                        <tr>
+                            <td colspan="5" class="text-center">Chưa có khoá học nào được thêm</td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </form>
+            </div>
+            <p>Tổng tiền <span id="invoice-total"></span></p>
+            <div class="invoice-create-btn align-items-center">
+                <p id="invoice-err" class="invoice-err">dsa</p>
+                <button class="btn btn-primary" id="invoice-create">Tạo hoá đơn</button>
+            </div>
+        </div>
+
+    </div>
+</div>
+<script src="{{ url_for('static', filename='scripts/invoice.js') }}"></script>
+</body>
+{% endblock %}
+
+
+

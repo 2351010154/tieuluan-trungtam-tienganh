@@ -3,7 +3,7 @@ from sqlalchemy import func, case, select, exists
 from sqlalchemy.orm import joinedload
 
 from enums import Role
-from models import User, Course, Class, Enrollment
+from models import User, Course, Class, Enrollment, Receipt, ReceiptDetails
 import hashlib
 from __init__ import app, db
 
@@ -118,6 +118,25 @@ def get_courses():
 def add_user(username, password_hash, role, avatar):
     u = User(name=username.strip(),
              password=str(hashlib.md5(password_hash.strip().encode('utf-8')).hexdigest), role=role, avatar=avatar)
+
+
+def add_receipt(user_id, enrollment_ids, prices):
+    try:
+        receipt = Receipt(user_id=user_id)
+        db.session.add(receipt)
+        db.session.flush()
+        for i in range(len(enrollment_ids)):
+            detail = ReceiptDetails(
+                unit_price=prices[i],
+                receipt_id=receipt.id,
+                enrollment_id=enrollment_ids[i],
+            )
+            db.session.add(detail)
+        db.session.commit()
+        return True
+    except Exception as ex:
+        db.session.rollback()
+        return False
 
 
 def register_course(user_id, class_id):
