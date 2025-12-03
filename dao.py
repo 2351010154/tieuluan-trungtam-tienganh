@@ -83,6 +83,16 @@ def get_enrollment_by_user(user_id):
     return enrollment
 
 
+def get_no_receipt_enrollments(user_id):
+    query = db.session.query(Enrollment, Class, Course).join(Class, Enrollment.class_id == Class.id).join(Course,
+                                                                                                          Enrollment.course_id == Course.id)
+    query = query.filter(
+        ~exists().where(
+            (ReceiptDetails.enrollment_id == Enrollment.id)
+        ), Enrollment.user_id == user_id)
+    return query.all()
+
+
 def get_enrollment(user_id, class_id):
     enrollment = db.session.query(Enrollment).filter(Enrollment.user_id == user_id,
                                                      Enrollment.class_id == class_id).first()

@@ -11,8 +11,7 @@ invoice_id_submit.addEventListener('keyup', async function(event) {
         event.preventDefault();
         user_id = invoice_id_submit.value;
 
-
-        response = await fetch(`/api/enrollment/${user_id}`);
+        response = await fetch(`/api/enrollment/${user_id}?no_receipt=true`);
         if (!response.ok) {
             alert('Mã số sinh viên không hợp lệ');
             return;
