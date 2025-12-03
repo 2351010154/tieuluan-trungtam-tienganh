@@ -1,6 +1,7 @@
 from flask_login import current_user
 from sqlalchemy import func, case
 from sqlalchemy.orm import joinedload
+import cloudinary.uploader
 
 from enums import Role
 from models import User, Course, Class, Enrollment
@@ -93,10 +94,20 @@ def get_courses():
     return Course.query.all()
 
 
-def add_user(username, password_hash, role, avatar):
-    u = User(name=username.strip(),
-             password=str(hashlib.md5(password_hash.strip().encode('utf-8')).hexdigest), role=role, avatar=avatar)
+def add_user(name, username, password_hash, role, avatar):
+    avatar_url = None
+    if avatar:
+        res = cloudinary.uploader.upload(avatar)
+        avatar_url = res['secure_url']
 
+    u = User(name=name,
+             username=username,
+             role=role,
+             avatar=avatar_url)
+
+    u.set_password(password_hash)
+    db.session.add(u)
+    db.session.commit()
 
 def register_course(user_id, class_id):
     user = get_user_by_id(user_id)
