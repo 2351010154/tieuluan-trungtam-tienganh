@@ -38,6 +38,7 @@ def login_process():
         elif user.role == Role.INSTRUCTOR:
             return redirect(url_for('instructor_home_view'))
 
+
     return render_template('index.html', err_mgs='Sai mật khẩu hoặc tài khoản')
 
 
@@ -48,13 +49,26 @@ def register_view():
 
 @app.route('/register', methods=['POST'])
 def register_process():
-    password = request.form['password']
-    confirm = request.form['confirm']
+    password = request.form.get('password')
+    confirm = request.form.get('confirm')
 
     if password != confirm:
-        err_msg = 'Mật Khẩu Không Khớp!'
+        err_msg = 'Mật Khẩu KHONG Khớp!'
         return render_template('register.html', err_msg=err_msg)
-    avatar = request.files['avatar']
+
+    avatar = request.files.get('avatar')
+    try:
+        dao.add_user(name=request.form['name'],
+                     username=request.form['username'],
+                     password_hash=request.form['password'],
+                     role=Role.STUDENT,
+                     avatar=avatar)
+        return redirect(url_for('index'))
+    except Exception as ex:
+        print(f"Lỗi đăng ký: {str(ex)}")  # In lỗi ra terminal để debug
+        return render_template('register.html', err_msg = 'He thong dang co loi')
+
+
 
 
 @app.route('/logout')
@@ -125,11 +139,7 @@ def admin_rules_view():
         ]
     }
 
-    return render_template(
-        'admin_quydinh.html',
-        rules=rules_data
-    )
-
+    return render_template('admin_quydinh.html', rules=rules_data)
 
 @app.route('/courses')
 def courses_view():
