@@ -61,7 +61,7 @@ def register_process():
         dao.add_user(name=request.form['name'],
                      username=request.form['username'],
                      password_hash=request.form['password'],
-                     role=Role.ADMIN,
+                     role=Role.STUDENT,
                      avatar=avatar)
         return redirect(url_for('index'))
     except Exception as ex:
