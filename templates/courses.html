@@ -9,9 +9,11 @@
             <input id="course-search" name="keyword" class="form-control w-75" type="search" placeholder="Search"
                    aria-label="Search"
                    oninput="debounceSearch()"/>
-            {% if request.args.get('difficulty') %}
-            <input type="hidden" name="difficulty" value="{{ request.args.get('difficulty') }}">
+            {% for k, v in request.args.items() %}
+            {% if k != 'keyword' %}
+            <input type="hidden" name="{{ k }}" value="{{ v }}">
             {% endif %}
+            {% endfor %}
         </form>
 
         <div class="h-4"></div>
@@ -21,12 +23,12 @@
             <a href="{{ url_for('courses_view')}} ">
                 <div class="dif-card {{ 'active' if not request.args.get('difficulty') else '' }}">
                     <p>Tổng khoá học</p>
-                    <p class="fw-bold fs-4">{{ total_courses.total }}</p>
+                    <p class="fw-bold fs-4">{{ total_courses[0] }}</p>
                 </div>
             </a>
 
             {% for l in levels %}
-            <a href="{{ url_for('courses_view', difficulty=l.value)}} ">
+            <a href="{{ url_for('courses_view', difficulty=l.value, keyword= request.args.get('keyword'), hide_enrolled = request.args.get('hide_enrolled') )}} ">
                 <div class="dif-card {{ 'active' if request.args.get('difficulty') == l.value else ''}}">
                     <p>{{ l.value }}</p>
                     <div class="d-flex flex-row">
@@ -42,15 +44,22 @@
         <div class="h-4"></div>
 
         <div class="d-flex flex-row align-items-center">
-            <button class="btn">Ẩn đã chọn</button>
+            <a href="{{ url_for('courses_view', hide_enrolled='true', difficulty = request.args.get('difficulty'), keyword=request.args.get('keyword')) }}">
+                <button class="btn hide-enrolled {{ 'active' if request.args.get('hide_enrolled') == 'true' else '' }}">
+                    Ẩn
+                    đã đăng
+                    ký
+                </button>
+            </a>
 
             {% if pages > 1 %}
             <nav class="ms-auto ">
                 <ul class="pagination m-0">
                     {% for p in range(1, pages + 1) %}
                     <li class="page-item"><a class="page-link"
-                                             href="{{ url_for('courses_view', page=p, difficulty=request.args.get('difficulty'), keyword=request.args.get('keyword')) }}">{{
-                        p }}</a>
+                                             href="{{ url_for('courses_view', page=p, difficulty=request.args.get('difficulty'), keyword=request.args.get('keyword')
+                                              , hide_enrolled =request.args.get('hide_enrolled')) }}">
+                        {{ p }}</a>
                     </li>
                     {% endfor %}
                 </ul>
@@ -66,10 +75,11 @@
             <div class="d-flex flex-column gap-3">
                 <p class="fw-bold course-title mb-2">{{ c.name }}</p>
                 <div class="w-300">
-                    <p class="fw-light">{{ c.description }}</p>
+                    <p class="fw-light opacity-75 course-description">{{ c.description }}</p>
                 </div>
                 <div class="d-flex flex-row ms-auto gap-2">
-                    <button class="btn-basic view-details" style="border: 1px solid #e2e8f0;">Chi
+                    <button class="btn-basic view-details" data-bs-toggle="modal" data-bs-target="#details-modal"
+                            style="border: 1px solid #e2e8f0;">Chi
                         tiết
                     </button>
                     <button type="button" data-bs-toggle="modal" data-bs-target="#modal"
@@ -84,7 +94,7 @@
         <div id="modal" class="modal fade">
             <div class="modal-dialog modal-dialog-centered">
                 <div class="modal-content p-4 gap-3 d-flex flex-column">
-                    <h5 class="modal-title fw-bold ps-2" id="enroll-title"></h5>
+                    <h5 class="modal-title fw-bold ps-1" id="enroll-title"></h5>
                     <div class="form-floating ">
                         <select class="form-select custom-form-field"
                                 id="enroll-class-select">
@@ -114,6 +124,31 @@
                 </div>
             </div>
         </div>
+
+
+        <div id="details-modal" class="modal fade">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content p-4 gap-3 d-flex flex-column">
+                    <p>
+                        <span class="opacity-50">Course name:</span>
+                        <span class="modal-title fw-bold" id="detail-title"></span>
+                    </p>
+
+                    <div class="d-flex flex-column flex-grow-1 gap-3">
+                        <div class="d-flex flex-row gap-2" id="detail-cards">
+                        </div>
+
+                        <div class="d-flex flex-column gap-2">
+                            <p class="fw-bold opacity-50">Description:</p>
+                            <p id="detail-description" class="overflow-hidden text-break"></p>
+                        </div>
+                    </div>
+
+
+                </div>
+            </div>
+        </div>
+
 
     </div>
 </div>

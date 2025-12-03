@@ -1,10 +1,7 @@
 <aside id="sidebar">
     <div class="d-flex flex-row justify-content-between align-items-center">
         <button id="toggle-btn" class="btn" type="button">
-            <i class="lni lni-bookmark-1"></i>
-        </button>
-        <button id="notif-btn" class="btn" type="button">
-            <i class="lni lni-bell-1"></i>
+            {% include '/svg/hamburger.html' %}
         </button>
     </div>
     <ul class="sidebar-nav">
@@ -16,25 +13,41 @@
             class ="sidebar-link" href="{{ url_for('home_view') }}"
             {% endif %}
             >
-            <i class="lni lni-bookmark-1"></i>
-            <span>Dashboard</span>
+            {% include '/svg/dashboard.html' %}
+            <span class="ps-2">Dashboard</span>
             </a>
         </li>
         <li class="sidebar-item">
-            <a {% if request.path == '/courses' %}
+            <a {% if request.path== '/courses' %}
             class ="sidebar-link active" href="#"
             {% else %}
             class="sidebar-link" href="{{ url_for('courses_view') }}"
             {% endif %}
             >
-            <i class="lni lni-bookmark-1"></i>
-            <span>Đăng ký khoá học</span>
+            {% include '/svg/courses.html' %}
+            <span class="ps-2">Đăng ký khoá học</span>
             </a>
         </li>
         <li class="sidebar-item">
-            <a href="#" class="sidebar-link">
+            <a {% if request.path == '/invoice' %}
+                class="sidebar-link active" href="#"
+                {% else %}
+                class="sidebar-link" href="{{ url_for('invoice_view') }}"
+                {% endif %}
+            >
                 <i class="lni lni-bookmark-1"></i>
-                <span>Lập hoá đơn</span>
+                <span class="ps-2">Lập hoá đơn</span>
+            </a>
+        </li>
+        <li class="sidebar-item">
+            <a {% if request.path == '/receipts' %}
+                class="sidebar-link active" href="#"
+                {% else %}
+                class="sidebar-link" href="{{ url_for('receipts_view') }}"
+                {% endif %}
+            >
+                <i class="lni lni-bookmark-1"></i>
+                <span class="ps-2">Hioa don</span>
             </a>
         </li>
         {% elif current_user.role.name == 'ADMIN' %}
@@ -69,6 +82,29 @@
             >
             <i class="lni lni-bookmark-1"></i>
             <span>Thay đổi quy định</span>
+            </a>
+        </li>
+        {% elif current_user.role.name == 'INSTRUCTOR' %}
+        <li class="sidebar-item">
+            <a {% if request.path== '/giang-vien/bang-diem' %}
+            class="sidebar-link active" href="#"
+            {% else %}
+            class="sidebar-link" href="{{ url_for('instructor_home_view') }}"
+            {% endif %}
+            >
+            <i class="lni lni-bookmark-1"></i>
+            <span>Quản lý điểm</span>
+            </a>
+        </li>
+        <li class="sidebar-item">
+            <a {% if request.path== '/giang-vien/diem-danh' %}
+            class="sidebar-link active" href="#"
+            {% else %}
+            class="sidebar-link" href="{{ url_for('instructor_attendance_view') }}"
+            {% endif %}
+            >
+            <i class="lni lni-bookmark-1"></i>
+            <span class="ps-2">Điểm danh</span>
             </a>
         </li>
         {% endif %}

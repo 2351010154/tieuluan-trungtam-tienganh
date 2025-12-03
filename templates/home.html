@@ -33,17 +33,21 @@
                             <div class="d-flex flex-row">
                                 <p class="course-title">{{ course }}</p>
                             </div>
-                            <hr class="my-2">
-                            <div class="d-flex flex-row">
-                                <div class="d-flex flex-column">
-                                    <p class="course-price">{{ course.price }}</p>
-                                    <p class="me-auto font-weight-light">Price</p>
-                                </div>
-                                <div class="d-flex flex-column ms-auto">
-                                    <p class="course-price">{{ class_ }}</p>
-                                    <p class="ms-auto font-weight-light">Lớp</p>
+
+                            <div class="mt-auto">
+                                <hr class="my-2">
+                                <div class="d-flex flex-row">
+                                    <div class="d-flex flex-column">
+                                        <p class="course-price">{{ "{:,.0f}".format(course.price) }} VNĐ</p>
+                                        <p class="me-auto font-weight-light">Price</p>
+                                    </div>
+                                    <div class="d-flex flex-column ms-auto">
+                                        <p class="course-price">{{ class_ }}</p>
+                                        <p class="ms-auto font-weight-light">Lớp</p>
+                                    </div>
                                 </div>
                             </div>
+
                         </div>
 
                         {% endfor %}

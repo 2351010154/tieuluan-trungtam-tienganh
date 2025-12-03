@@ -3,6 +3,8 @@ import math
 from flask import render_template, session, request, url_for, jsonify
 from flask_login import current_user, logout_user, login_user, login_required
 from werkzeug.utils import redirect
+
+from dao import get_enrolled_courses_id
 from models import Role
 
 import dao
@@ -33,6 +35,8 @@ def login_process():
             return redirect(url_for('admin_home_view'))
         elif user.role == Role.STUDENT:
             return redirect(url_for('home_view'))
+        elif user.role == Role.INSTRUCTOR:
+            return redirect(url_for('instructor_home_view'))
 
 
     return render_template('index.html', err_mgs='Sai mật khẩu hoặc tài khoản')
@@ -129,8 +133,10 @@ def courses_view():
         level = request.args.get('difficulty')
         kw = request.args.get('keyword')
         page = request.args.get('page', 1, type=int)
-        return render_template('courses.html', pages=math.ceil(dao.count_course(level, kw) / app.config["PAGE_SIZE"]),
-                               courses=dao.get_courses_filter(level, kw, page)
+        hide_enrolled = request.args.get('hide_enrolled')
+        return render_template('courses.html', pages=math.ceil(
+            dao.count_course(level, kw, hide_enrolled, current_user.id) / app.config["PAGE_SIZE"]),
+                               courses=dao.get_courses_filter(level, kw, page, hide_enrolled, current_user.id)
                                , levels=enums.Level, total_courses=dao.sum_course_level())
     return redirect(url_for('index'))
 
@@ -171,6 +177,13 @@ def get_classes_by_course_api(course_id):
         'error': 'Classes not found'
     })
 
+@app.route('/giang-vien/bang-diem')
+def instructor_home_view():
+    return render_template('giaovienindex.html')
+
+@app.route('/giang-vien/diem-danh')
+def instructor_attendance_view():
+    return render_template('GiaoVien_DiemDanh.html')
 
 @app.route('/api/user', methods=['GET'])
 def get_user_api():
@@ -201,11 +214,11 @@ def register_course_api():
         })
 
     return jsonify({
-        'error': 'error'
+        'error': 'Lớp học đã đầy'
     })
 
 
-@app.route('/api/enrollment/delete/<int:user_id>/<int:class_id>', methods=['DELETE'])
+@app.route('/api/enrollment/<int:user_id>/<int:class_id>', methods=['DELETE'])
 def delete_enrollment_api(user_id, class_id):
     enrollment = dao.get_enrollment(user_id, class_id)
     if enrollment:
@@ -225,8 +238,8 @@ def delete_enrollment_api(user_id, class_id):
 
 @app.route('/test')
 def test_view():
-    enrollment = dao.get_enrollment_by_user(current_user.id)
-    print(len(enrollment))
+    test = get_enrolled_courses_id(current_user.id)
+    print(test)
 
     return 'Test Page'
 

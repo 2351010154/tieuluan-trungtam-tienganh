@@ -1,10 +1,10 @@
 from flask_login import current_user
-from sqlalchemy import func, case
+from sqlalchemy import func, case, select, exists
 from sqlalchemy.orm import joinedload
 import cloudinary.uploader
 
 from enums import Role
-from models import User, Course, Class, Enrollment
+from models import User, Course, Class, Enrollment, Receipt, ReceiptDetails
 import hashlib
 from __init__ import app, db
 
@@ -25,12 +25,31 @@ def get_instructors():
     return User.query.filter(User.role == Role.INSTRUCTOR)
 
 
-def get_courses_filter(level, kw, page):
+def get_enrolled_courses_id(user_id):
+    query = (
+        select(Course.id)
+        .where(
+            exists(
+                select(1)
+                .where(
+                    Enrollment.course_id == Course.id,
+                    Enrollment.user_id == user_id,
+                )
+            )
+        )
+    )
+    return db.session.execute(query).scalars().all()
+
+
+def get_courses_filter(level, kw, page, hide_enrolled, user_id):
     query = Course.query
     if level:
         query = query.filter(Course.level == level)
     if kw:
         query = query.filter(Course.name.contains(kw))
+    if hide_enrolled:
+        enrolled_ids = get_enrolled_courses_id(user_id)
+        query = query.filter(Course.id.notin_(enrolled_ids))
     if page:
         page_size = app.config.get("PAGE_SIZE", 6)
         start = (page - 1) * page_size
@@ -80,12 +99,15 @@ def delete_enrollment(enrollment):
         return False
 
 
-def count_course(level, kw):
+def count_course(level, kw, hide_enrolled, user_id):
     query = Course.query
     if level:
         query = query.filter(Course.level == level)
     if kw:
         query = query.filter(Course.name.contains(kw))
+    if hide_enrolled:
+        enrolled_ids = get_enrolled_courses_id(user_id)
+        query = query.filter(Course.id.notin_(enrolled_ids))
 
     return query.count()
 
@@ -109,10 +131,34 @@ def add_user(name, username, password_hash, role, avatar):
     db.session.add(u)
     db.session.commit()
 
+def add_receipt(user_id, enrollment_ids, prices):
+    try:
+        receipt = Receipt(user_id=user_id)
+        db.session.add(receipt)
+        db.session.flush()
+        for i in range(len(enrollment_ids)):
+            detail = ReceiptDetails(
+                unit_price=prices[i],
+                receipt_id=receipt.id,
+                enrollment_id=enrollment_ids[i],
+            )
+            db.session.add(detail)
+        db.session.commit()
+        return True
+    except Exception as ex:
+        db.session.rollback()
+        return False
+
+
 def register_course(user_id, class_id):
-    user = get_user_by_id(user_id)
-    course_class = get_class_by_id(class_id)
-    if user and course_class:
-        user.classes.append(course_class)
+    class_ = get_class_by_id(class_id)
+    enrollment = Enrollment(
+        user_id=user_id,
+        class_id=class_.id,
+        course_id=class_.course.id,
+    )
+
+    if len(class_.users) < class_.max_students:
+        db.session.add(enrollment)
         return True
     return False

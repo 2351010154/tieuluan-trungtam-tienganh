@@ -14,6 +14,11 @@ class Level(Enum):
     ADVANCED = "Advanced"
 
 
-class Status(Enum):
+class Mode(Enum):
     ONLINE = "Online"
     OFFLINE = "Offline"
+
+
+class Status(Enum):
+    PAID = "Paid"
+    PENDING = "Pending"

@@ -1,3 +1,4 @@
+
 .login {
     background-color: #070c26;
     background-image: url('/static/images/bg.png');
@@ -77,7 +78,8 @@ h1 {
     font-weight: 600;
     font-size: 1.5rem;
 }
-
+.w-2 {
+    max-width: 8px !important;}
 .w-5 {
     max-width: 20px !important;
 }
@@ -154,7 +156,7 @@ body {
     background-color: transparent;
     cursor: pointer;
     border: 0;
-    padding: 1rem 1.5rem !important;
+    padding: 1rem 1.65rem !important;
 }
 
 .btn i {
@@ -177,11 +179,11 @@ body {
 
 .sidebar-nav {
     padding: 2rem 0;
-    flex: 1 1 auto
+    flex: 1 1 auto;
 }
 
 a.sidebar-link {
-    padding: 0.625rem 1.625rem;
+    padding: 0.8rem 1.5rem;
     color: #ffffff !important;
     display: block;
     font-size: 0.9rem;
@@ -197,7 +199,6 @@ a.sidebar-link {
 
 .sidebar-link i {
     font-size: 1.1rem;
-    margin-right: .75rem;
 }
 
 a.sidebar-link:hover {
@@ -207,7 +208,11 @@ a.sidebar-link:hover {
 }
 
 .sidebar-item {
-    position: relative;
+
+}
+
+.hamburger-icon {
+    color: #ffffff;
 }
 
 .sidebar-footer {
@@ -221,7 +226,7 @@ a.sidebar-link:hover {
 }
 
 p {
-    margin-bottom: 0 !important;
+    margin-bottom: 0 !important;R
 }
 
 .logout-link {
@@ -274,7 +279,6 @@ padding:8px;
 .dif-card {
     display:flex;
     flex-direction: column;
-    align-items: center;
     min-width: 180px;
     padding: 24px 50px 16px 24px;
     background-color: #fff;
@@ -305,6 +309,10 @@ padding:8px;
     border-radius: 0.5rem;
     border: 1px solid #e2e8f0;
 }
+.course-info-card:hover {
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
 .btn-hide-selected {
     border: none;
     border-radius: 0.375rem;
@@ -326,6 +334,13 @@ padding:8px;
     background-color: #FBFBFB;
     color: black;
     cursor: pointer;
+}
+.detail-card {
+    min-width: 220px;
+    border: 1px solid #e2e8f0;
+    padding: 4px 8px;
+    border-radius: 8px;
+    box-shadow: 1px 1px 2px rgba(0, 0, 0, 0.05);
 }
 
 .course-enroll.btn-basic:hover {
@@ -352,8 +367,17 @@ padding:8px;
   color: #b0b0b0 !important;
 }
 
+
+.modal-dialog-centered {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    max-height: 100vh !important;
+    }
+
 .modal-content {
     width: auto !important;
+    max-width: 100vh !important;
 }
 
 .modal-content .btn-primary {
@@ -385,6 +409,39 @@ button.delete-course-btn {
     padding: 0;
     cursor: pointer;
 }
+
+.hide-enrolled {
+    display: none;
+}
+.hide-enrolled.active {
+    border: 1px solid #000;
+    display: block;
+}
+.grow-test {
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+}
+.course-description {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.invoice-create-btn {
+    display:flex;
+    justify-content: flex-end;
+    gap: 16px;
+}
+
+.invoice-err {
+    display: none;
+}
+.invoice-err.show {
+    display: block;
+    color: #B3261E;
+    font-size: 13px;
+}
+
 
 
 
@@ -424,6 +481,7 @@ button.delete-course-btn {
 
 .content-wrapper {
     padding: 30px 40px;
+    background-color: #f8fafc;
 }
 
 .filter-box {
@@ -491,4 +549,162 @@ button.delete-course-btn {
     font-size: 12px;
     color: #666;
     font-weight: 500;
+}
+.card-header .card-title {
+    font-size: 18px;
+    font-weight: 700;
+    color: #000;
+    margin: 0;
+}
+
+.table-teacher {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+}
+
+.table-teacher thead tr th {
+    background-color: #E2E8F0;
+    padding: 15px;
+    font-size: 13px;
+    font-weight: 700;
+    color: #4B5563;
+    text-transform: uppercase;
+    text-align: center;
+    border-bottom: none;
+    vertical-align: middle;
+}
+
+
+.table-teacher thead th:first-child {
+    border-top-left-radius: 8px;
+    border-bottom-left-radius: 8px;
+    padding-left: 20px;
+}
+
+.table-teacher thead th:last-child {
+    border-top-right-radius: 8px;
+    border-bottom-right-radius: 8px;
+}
+
+
+.table-teacher tbody td {
+    padding: 18px 15px;
+    font-size: 14px;
+    color: #111827;
+    border-bottom: 1px solid #F3F4F6;
+    text-align: center;
+    vertical-align: middle;
+}
+
+
+.table-teacher tbody td:first-child,
+.table-teacher thead th:first-child {
+    text-align: left;
+}
+.table-teacher tbody td:first-child {
+    padding-left: 20px;
+    font-weight: 600;
+}
+
+.table-teacher tbody tr:hover td {
+    background-color: #F8FAFC;
+    transition: background-color 0.2s ease;
+}
+
+
+.btn-primary-teacher {
+    background-color: #1D4ED8;
+    color: white;
+    border: none;
+    padding: 10px 24px;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 13px;
+    text-transform: uppercase;
+    transition: all 0.2s;
+}
+
+.btn-primary-teacher:hover {
+    background-color: #1e40af;
+    color: white;
+    transform: translateY(-1px);
+}
+
+
+.attendance-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+}
+
+.attendance-filters {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.attendance-filters label {
+    font-weight: 500;
+    color: #374151;
+    margin-bottom: 0;
+}
+
+
+.attendance-input {
+    border: 1px solid #cbd5e1 !important;
+    border-radius: 6px !important;
+    padding: 8px 12px !important;
+    font-size: 14px !important;
+    color: #334155;
+    background-color: #fff;
+    outline: none;
+    height: 40px;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+    min-width: 160px;
+}
+
+.attendance-input:focus {
+    border-color: #3b82f6 !important;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1) !important;
+}
+
+
+.btn-filter-blue {
+    background-color: #2563eb !important;
+    border: 1px solid #2563eb !important;
+    color: #ffffff !important;
+    border-radius: 6px !important;
+    padding: 0 20px !important;
+    height: 40px !important;
+    font-weight: 500 !important;
+    font-size: 14px !important;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.btn-filter-blue:hover {
+    background-color: #1d4ed8 !important;
+}
+
+
+.attendance-table thead th {
+    background-color: #f3f4f6;
+    color: #4b5563;
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 12px;
+    letter-spacing: 0.05em;
+    padding: 12px 16px;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.attendance-table tbody td {
+    border-bottom: 1px solid #f1f5f9;
+    padding: 16px;
+    vertical-align: middle;
 }

@@ -1,17 +1,25 @@
+import datetime
+from functools import wraps
+
 from flask_login import UserMixin
 from werkzeug.security import generate_password_hash, check_password_hash
 from sqlalchemy import Enum, UniqueConstraint, Index
+from datetime import datetime
 
 from __init__ import db, app
-from enums import Role, Level, Status
+from enums import Role, Level, Mode, Status
 
 
-class BaseModel(db.Model):
-    __abstract__ = True
+def only_current_user(user_id):
+    from flask_login import current_user
+    if user_id is None or current_user.id != int(user_id):
+        return False
+    return True
+
+
+class User(db.Model, UserMixin):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
 
-
-class User(BaseModel, UserMixin):
     avatar = db.Column(db.String(255), nullable=True,
                        default="https://res.cloudinary.com/dkjmnoilv/image/upload/v1762911447/cld-sample.jpg")
     username = db.Column(db.String(50), unique=True, nullable=False)
@@ -21,6 +29,7 @@ class User(BaseModel, UserMixin):
     role = db.Column(Enum(Role), nullable=False, default=Role.STUDENT)
 
     classes = db.relationship('Class', secondary='enrollment', back_populates='users', lazy=True)
+    receipts = db.relationship('Receipt', backref='user', lazy=True)
 
     def set_password(self, password):
         self.password_hash = generate_password_hash(password)
@@ -32,18 +41,43 @@ class User(BaseModel, UserMixin):
         return self.username
 
 
-class Enrollment(BaseModel):
+class Enrollment(db.Model):
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False, primary_key=True)
     class_id = db.Column(db.Integer, db.ForeignKey('class.id'), nullable=False, primary_key=True)
+    course_id = db.Column(db.Integer, nullable=False)
 
     __table_args__ = (
         UniqueConstraint('user_id', 'class_id'),
+        UniqueConstraint('user_id', 'course_id'),
     )
 
-    enroll_date = db.Column(db.DateTime, nullable=False, default=db.func.current_timestamp())
+    enroll_date = db.Column(db.DateTime, nullable=False, default=datetime.now())
+    details = db.relationship('ReceiptDetails', backref='enrollment', lazy=True)
 
 
-class Class(BaseModel):
+class Receipt(db.Model):
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    created_at = db.Column(db.DateTime, nullable=False, default=datetime.now())
+    status = db.Column(Enum(Status), nullable=False, default=Status.PENDING)
+
+    receipt_details = db.relationship('ReceiptDetails', backref='receipt', lazy=True)
+
+
+class ReceiptDetails(db.Model):
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+
+    receipt_id = db.Column(db.Integer, db.ForeignKey('receipt.id'), nullable=False)
+    enrollment_id = db.Column(db.Integer, db.ForeignKey('enrollment.id'), nullable=False, unique=True)
+    description = db.Column(db.String(255), nullable=True)
+    unit_price = db.Column(db.Float, nullable=False, default=0.0)
+
+
+class Class(db.Model):
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+
     name = db.Column(db.String(255), nullable=False)
     course_id = db.Column(db.Integer, db.ForeignKey('course.id'), nullable=False)
     instructor_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
@@ -57,11 +91,13 @@ class Class(BaseModel):
         return self.name
 
 
-class Course(BaseModel):
+class Course(db.Model):
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+
     name = db.Column(db.String(255), nullable=False)
     level = db.Column(Enum(Level), nullable=False)
-    status = db.Column(Enum(Status), nullable=False)
-    price = db.Column(db.Integer, nullable=False, default=0.0)
+    status = db.Column(Enum(Mode), nullable=False)
+    price = db.Column(db.Float, nullable=False, default=0.0)
     description = db.Column(db.Text, nullable=True)
 
     def __str__(self):
