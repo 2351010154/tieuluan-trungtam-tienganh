@@ -8,7 +8,6 @@ invoice_id_submit.addEventListener('keyup', async function(event) {
     invoice_err.classList.remove("show");
     invoice_total.textContent = "";
     if (event.key === 'Enter') {
-        event.preventDefault();
         user_id = invoice_id_submit.value;
 
         response = await fetch(`/api/enrollment/${user_id}?no_receipt=true`);
@@ -29,9 +28,7 @@ invoice_id_submit.addEventListener('keyup', async function(event) {
             return;
         }
 
-
         i = 0;
-
         for (const enrollment of enrollment_json) {
             row = createRow(enrollment,i)
             invoice_content.appendChild(row);

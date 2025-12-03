@@ -84,6 +84,18 @@ def get_enrollment_by_user(user_id):
     return enrollment
 
 
+def get_enrollment_with_receipt(user_id):
+    query = db.session.query(Enrollment, Class, Course, Receipt.status).join(Class,
+                                                                             Enrollment.class_id == Class.id).join(
+        Course, Course.id == Class.course_id).filter(
+        Enrollment.user_id == user_id).outerjoin(ReceiptDetails,
+                                                 ReceiptDetails.enrollment_id == Enrollment.id).outerjoin(Receipt,
+                                                                                                          Receipt.id == ReceiptDetails.receipt_id)
+
+    query = query.filter(Enrollment.user_id == user_id).all()
+    return query
+
+
 def get_no_receipt_enrollments(user_id):
     query = db.session.query(Enrollment, Class, Course).join(Class, Enrollment.class_id == Class.id).join(Course,
                                                                                                           Enrollment.course_id == Course.id)
@@ -100,12 +112,19 @@ def get_enrollment(user_id, class_id):
     return enrollment
 
 
+def get_enrollment_by_id(enrollment_id):
+    return db.session.query(Enrollment).get(enrollment_id)
+
+
 def delete_enrollment(enrollment):
     try:
+        for detail in enrollment.detail:
+            db.session.delete(detail)
         db.session.delete(enrollment)
         db.session.commit()
         return True
     except Exception as ex:
+        print(ex)
         return False
 
 
@@ -140,6 +159,7 @@ def add_user(name, username, password_hash, role, avatar):
     u.set_password(password_hash)
     db.session.add(u)
     db.session.commit()
+
 
 def add_receipt(user_id, enrollment_ids, prices):
     try:

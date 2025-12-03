@@ -89,6 +89,8 @@ detail_buttons.forEach((button) => {
 
 const enrollSelect = document.getElementById('enroll-class-select')
 const instructorLabel = document.getElementById('enroll-instructor');
+const enrollSize = document.getElementById('enroll-size');
+
 async function classSelectLoader(course_id) {
     const response = await fetch(`/api/courses/${course_id}/classes`);
     if (response.ok) {
@@ -101,6 +103,9 @@ async function classSelectLoader(course_id) {
                 instructorLabel.value = classes[0]['instructor'];
             }
         }
+        if (enrollSize != null) {
+            enrollSize.value = `${classes[0]['current_size']}/${classes[0]['max_students']}` ;
+        }
 
         classes.forEach((classItem) => {
             option = document.createElement('option');
@@ -108,6 +113,9 @@ async function classSelectLoader(course_id) {
             option.value = classItem['id'];
             option.textContent = classItem['name'];
             option.setAttribute('data-instructor', classItem['instructor']);
+            option.setAttribute('data-size', classItem['current_size']);
+            option.setAttribute('data-max-size', classItem['max_students']);
+
 
             enrollSelect.appendChild(option);
         })
@@ -134,6 +142,11 @@ enrollSelect.addEventListener('change', function() {
     selectedOption = enrollSelect.options[enrollSelect.selectedIndex];
     instructorName = selectedOption.getAttribute('data-instructor');
     instructorLabel.value = instructorName;
+
+    classSize = selectedOption.getAttribute('data-size');
+    maxSize = selectedOption.getAttribute('data-max-size');
+    console.log(classSize);
+    enrollSize.value = `${classSize}/${maxSize}`;
 })
 
 registerBtn = document.getElementById('course-register')

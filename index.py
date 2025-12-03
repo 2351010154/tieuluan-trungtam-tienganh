@@ -38,7 +38,6 @@ def login_process():
         elif user.role == Role.INSTRUCTOR:
             return redirect(url_for('instructor_home_view'))
 
-
     return render_template('index.html', err_mgs='Sai mật khẩu hoặc tài khoản')
 
 
@@ -66,9 +65,7 @@ def register_process():
         return redirect(url_for('index'))
     except Exception as ex:
         print(f"Lỗi đăng ký: {str(ex)}")  # In lỗi ra terminal để debug
-        return render_template('register.html', err_msg = 'He thong dang co loi')
-
-
+        return render_template('register.html', err_msg='He thong dang co loi')
 
 
 @app.route('/logout')
@@ -86,7 +83,7 @@ def load_user(user_id):
 @app.route('/home')
 def home_view():
     if current_user.is_authenticated:
-        return render_template('home.html', enrollment=dao.get_enrollment_by_user(current_user.id))
+        return render_template('home.html', enrollment=dao.get_enrollment_with_receipt(current_user.id))
     return redirect(url_for('index'))
 
 
@@ -141,6 +138,7 @@ def admin_rules_view():
 
     return render_template('admin_quydinh.html', rules=rules_data)
 
+
 @app.route('/courses')
 def courses_view():
     if current_user.is_authenticated:
@@ -185,7 +183,8 @@ def get_classes_by_course_api(course_id):
                 'id': c.id,
                 'instructor': c.instructor.name,
                 'name': c.name,
-                'max_students': c.max_students
+                'max_students': c.max_students,
+                'current_size': len(c.users)
             })
         return jsonify(class_list)
     return jsonify({
