@@ -83,7 +83,7 @@ def load_user(user_id):
 @app.route('/home')
 def home_view():
     if current_user.is_authenticated:
-        return render_template('home.html', enrollment=dao.get_enrollment_with_receipt(current_user.id))
+        return render_template('home.html', enrollment=dao.get_enrollment_with_receipt(current_user.id).all())
     return redirect(url_for('index'))
 
 
@@ -97,7 +97,8 @@ def invoice_view():
 @app.route('/receipts')
 def receipts_view():
     if current_user.is_authenticated:
-        return render_template('receipts.html')
+        pending_receipts = dao.get_pending_receipts_with_user()
+        return render_template('receipts.html', receipts=pending_receipts)
     return redirect(url_for('index'))
 
 
@@ -255,12 +256,17 @@ def delete_enrollment_api(user_id, class_id):
 
 @app.route('/api/enrollment/<int:user_id>', methods=['GET'])
 def get_enrollment_api(user_id):
-    query = request.args.get('no_receipt')
+    no_receipt = request.args.get('no_receipt')
+    status = request.args.get('status')
+    receipt_id = request.args.get('receipt_id', type=int)
     enrollment = []
-    if query == 'true':
+    if no_receipt == 'true':
         enrollment = dao.get_no_receipt_enrollments(user_id)
+    elif status:
+        enrollment = dao.get_enrollment_receipts_details(user_id, receipt_id, status)
     else:
-        enrollment = dao.get_enrollment_by_user(user_id)
+        enrollment = dao.get_enrollment_by_user(user_id).all()
+
     print(enrollment)
     enrollment_list = []
     for e, c, course in enrollment:
@@ -271,6 +277,7 @@ def get_enrollment_api(user_id):
                 'course_price': course.price,
                 'class_name': c.name,
                 'course_level': course.level.value,
+                'receipt_id': receipt_id if receipt_id else None
             }
         )
     return jsonify(enrollment_list)
@@ -295,6 +302,18 @@ def create_receipt():
     return jsonify({
         'error': 'not login'
     })
+
+
+@app.route('/api/receipts/<int:receipt_id>/status', methods=['PUT'])
+def confirm_receipt(receipt_id):
+    if dao.confirm_receipt(receipt_id):
+        return jsonify({
+            'msg': 'success'
+        })
+    else:
+        return jsonify({
+            'error': 'cannot confirm receipt'
+        })
 
 
 @app.route('/test')

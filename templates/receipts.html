@@ -17,15 +17,17 @@
                     </tr>
                     </thead>
                     <tbody>
-                    <tr>
-                        <td>HD001</td>
-                        <td>Nguyễn Văn A</td>
+                    {% for r, user_name in receipts %}
+                    <tr data-receipt-id="{{ r.id }}" data-user-id="{{ r.user_id }}">
+                        <td>{{ r.id }}</td>
+                        <td>{{ user_name }}</td>
                         <td>
                             <div class="d-flex flex-row gap-2">
-                                <a href="#">Thanh toan</a>
+                                <button class="receipt-details-btn">Thanh toán</button>
                             </div>
                         </td>
                     </tr>
+                    {% endfor %}
                     </tbody>
                 </table>
             </div>
@@ -33,6 +35,6 @@
         </div>
     </div>
 </div>
-
+<script src="{{ url_for('static', filename='scripts/receipts.js') }}"></script>
 </body>
 {% endblock %}

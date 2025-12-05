@@ -5,10 +5,14 @@
     {% include 'sidebar.html' %}
     <div class="main">
         <div class="d-flex flex-column gap-3">
-            <p class="fs-4 text-center">Tạo hoá đơn</p>
+            <p class="fs-4 text-center">Hoá đơn</p>
             <div>
                 <form class="form-floating" action="#">
-                    <input class="form-control custom-form-field w-25" id="invoice-id-submit" required>
+                    <input class="form-control custom-form-field w-25" id="invoice-id-submit" required
+                        {% if request.args.get('user_id') %}
+                            disabled
+                        {% endif %}
+                    >
                     <label>Mã số sinh viên</label>
                     <div class="h-10"></div>
                     <table class="table">
@@ -32,7 +36,11 @@
             <p>Tổng tiền <span id="invoice-total"></span></p>
             <div class="invoice-create-btn align-items-center">
                 <p id="invoice-err" class="invoice-err">dsa</p>
+                {% if request.args.get('user_id') %}
+                <button class="btn btn-primary" id="invoice-pay-btn">Thanh toán</button>
+                {% else %}
                 <button class="btn btn-primary" id="invoice-create">Tạo hoá đơn</button>
+                {% endif %}
             </div>
         </div>
 

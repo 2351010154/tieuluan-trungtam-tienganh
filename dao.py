@@ -3,7 +3,7 @@ from sqlalchemy import func, case, select, exists
 from sqlalchemy.orm import joinedload
 import cloudinary.uploader
 
-from enums import Role
+from enums import Role, Status
 from models import User, Course, Class, Enrollment, Receipt, ReceiptDetails
 import hashlib
 from __init__ import app, db
@@ -78,10 +78,10 @@ def sum_course_level():
 
 
 def get_enrollment_by_user(user_id):
-    enrollment = db.session.query(Enrollment, Class, Course).join(Class, Enrollment.class_id == Class.id).join(Course,
-                                                                                                               Course.id == Class.course_id).filter(
-        Enrollment.user_id == user_id).all()
-    return enrollment
+    query = db.session.query(Enrollment, Class, Course).join(Class, Enrollment.class_id == Class.id).join(Course,
+                                                                                                          Course.id == Class.course_id).filter(
+        Enrollment.user_id == user_id)
+    return query
 
 
 def get_enrollment_with_receipt(user_id):
@@ -92,7 +92,7 @@ def get_enrollment_with_receipt(user_id):
                                                  ReceiptDetails.enrollment_id == Enrollment.id).outerjoin(Receipt,
                                                                                                           Receipt.id == ReceiptDetails.receipt_id)
 
-    query = query.filter(Enrollment.user_id == user_id).all()
+    query = query.filter(Enrollment.user_id == user_id)
     return query
 
 
@@ -106,10 +106,32 @@ def get_no_receipt_enrollments(user_id):
     return query.all()
 
 
+def get_receipt_by_id(receipt_id):
+    return db.session.query(Receipt).get(receipt_id)
+
+
+def get_receipt_by_user_id(user_id):
+    query = db.session.query(Receipt).filter(Receipt.user_id == user_id)
+    return query
+
+
+def get_enrollment_receipts_details(user_id, receipt_id, status='Pending'):
+    query = db.session.query(Enrollment, Class, Course).join(
+        ReceiptDetails, ReceiptDetails.enrollment_id == Enrollment.id).join(
+        Receipt, Receipt.id == ReceiptDetails.receipt_id).join(
+        Class, Enrollment.class_id == Class.id).join(
+        Course, Enrollment.course_id == Course.id).filter(
+        Receipt.user_id == user_id,
+        Receipt.id == receipt_id,
+        Receipt.status == status,
+    )
+    return query.all()
+
+
 def get_enrollment(user_id, class_id):
-    enrollment = db.session.query(Enrollment).filter(Enrollment.user_id == user_id,
-                                                     Enrollment.class_id == class_id).first()
-    return enrollment
+    query = db.session.query(Enrollment).filter(Enrollment.user_id == user_id,
+                                                Enrollment.class_id == class_id)
+    return query.first()
 
 
 def get_enrollment_by_id(enrollment_id):
@@ -178,6 +200,25 @@ def add_receipt(user_id, enrollment_ids, prices):
     except Exception as ex:
         db.session.rollback()
         return False
+
+
+def confirm_receipt(receipt_id):
+    try:
+        receipt = get_receipt_by_id(receipt_id)
+        if receipt.status == Status.PAID:
+            return False
+        receipt.status = Status.PAID
+        db.session.commit()
+        return True
+    except Exception as ex:
+        print(ex)
+        return False
+
+
+def get_pending_receipts_with_user():
+    query = db.session.query(Receipt, User.name).join(User, Receipt.user_id == User.id).filter(
+        Receipt.status == 'Pending')
+    return query.all()
 
 
 def register_course(user_id, class_id):
