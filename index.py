@@ -14,6 +14,82 @@ from __init__ import app, db, login_manager
 from models import User
 
 
+def get_sidebar_items():
+    sidebar_config = {
+        'STUDENT': [
+            {
+                'label': 'Dashboard',
+                'icon_type': 'svg',
+                'icon_path': '/svg/dashboard.html',
+                'path': '/home',
+                'url_name': 'home_view'
+            },
+            {
+                'label': 'Đăng ký khoá học',
+                'icon_type': 'svg',
+                'icon_path': '/svg/courses.html',
+                'path': '/courses',
+                'url_name': 'courses_view'
+            },
+            {
+                'label': 'Lập hoá đơn',
+                'icon_type': 'icon',
+                'icon_class': 'lni lni-bookmark-1',
+                'path': '/invoice',
+                'url_name': 'invoice_view'
+            },
+            {
+                'label': 'Hoá đơn',
+                'icon_type': 'icon',
+                'icon_class': 'lni lni-bookmark-1',
+                'path': '/receipts',
+                'url_name': 'receipts_view'
+            }
+        ],
+        'ADMIN': [
+            {
+                'label': 'Dashboard',
+                'icon_type': 'icon',
+                'icon_class': 'lni lni-bookmark-1',
+                'path': '/admin',
+                'url_name': 'admin_home_view'
+            },
+            {
+                'label': 'Báo cáo thống kê',
+                'icon_type': 'icon',
+                'icon_class': 'lni lni-bookmark-1',
+                'path': '/admin/baocao',
+                'url_name': 'admin_baocao_view'
+            },
+            {
+                'label': 'Thay đổi quy định',
+                'icon_type': 'icon',
+                'icon_class': 'lni lni-bookmark-1',
+                'path': '/admin/rules',
+                'url_name': 'admin_rules_view'
+            }
+        ],
+        'INSTRUCTOR': [
+            {
+                'label': 'Quản lý điểm',
+                'icon_type': 'icon',
+                'icon_class': 'lni lni-bookmark-1',
+                'path': '/giang-vien/bang-diem',
+                'url_name': 'instructor_home_view'
+            }
+        ]
+    }
+
+    if current_user.is_authenticated:
+        return sidebar_config.get(current_user.role.name, [])
+    return []
+
+
+@app.context_processor
+def sidebar_items():
+    return dict(sidebar_items=get_sidebar_items())
+
+
 @app.route('/')
 def index():
     if current_user.is_authenticated:
@@ -291,7 +367,7 @@ def create_receipt():
         enrollment_ids = body.get('enrollment_ids', [])
         prices = body.get('prices', [])
 
-        if dao.add_receipt(user_id, enrollment_ids, prices):
+        if dao.add_receipt(user_id, enrollment_ids):
             return jsonify({
                 'msg': 'success'
             })

@@ -5,97 +5,25 @@
         </button>
     </div>
     <ul class="sidebar-nav">
-        {% if current_user.role.name == 'STUDENT' %}
+        {% if sidebar_items %}
+        {% for item in sidebar_items %}
         <li class="sidebar-item">
-            <a {% if request.path== '/home' %}
-            class ="sidebar-link active" href="#"
-            {% else %}
-            class ="sidebar-link" href="{{ url_for('home_view') }}"
-            {% endif %}
+            <a {% if request.path== item.path %}
+               class="sidebar-link active" href="#"
+               {% else %}
+               class="sidebar-link" href="{{ url_for(item.url_name) }}"
+               {% endif %}
             >
-            {% include '/svg/dashboard.html' %}
-            <span class="ps-2">Dashboard</span>
-            </a>
-        </li>
-        <li class="sidebar-item">
-            <a {% if request.path == '/courses' %}
-            class ="sidebar-link active" href="#"
-            {% else %}
-            class="sidebar-link" href="{{ url_for('courses_view') }}"
-            {% endif %}
-            >
-            {% include '/svg/courses.html' %}
-            <span class="ps-2">Đăng ký khoá học</span>
-            </a>
-        </li>
-        <li class="sidebar-item">
-            <a {% if request.path == '/invoice' %}
-                class="sidebar-link active" href="#"
-                {% else %}
-                class="sidebar-link" href="{{ url_for('invoice_view') }}"
+                {% if item.icon_type == 'svg' %}
+                {% include item.icon_path %}
+                {% elif item.icon_type == 'icon' %}
+                <i class="{{ item.icon_class }}"></i>
                 {% endif %}
-            >
-                <i class="lni lni-bookmark-1"></i>
-                <span class="ps-2">Lập hoá đơn</span>
+
+                <span class="ps-2">{{ item.label }}</span>
             </a>
         </li>
-        <li class="sidebar-item">
-            <a {% if request.path == '/receipts' %}
-                class="sidebar-link active" href="#"
-                {% else %}
-                class="sidebar-link" href="{{ url_for('receipts_view') }}"
-                {% endif %}
-            >
-                <i class="lni lni-bookmark-1"></i>
-                <span class="ps-2">Hoá đơn</span>
-            </a>
-        </li>
-        {% elif current_user.role.name == 'ADMIN' %}
-        <li class="sidebar-item">
-            <a {% if request.path== '/admin' %}
-            class ="sidebar-link active" href="#"
-            {% else %}
-            class ="sidebar-link" href="{{ url_for('admin_home_view') }}"
-            {% endif %}
-            >
-            <i class="lni lni-bookmark-1"></i>
-            <span>Dashboard</span>
-            </a>
-        </li>
-        <li class="sidebar-item">
-            <a {% if request.path== '/admin/baocao' %}
-            class ="sidebar-link active" href="#"
-            {% else %}
-            class="sidebar-link" href="{{ url_for('admin_baocao_view') }}"
-            {% endif %}
-            >
-            <i class="lni lni-bookmark-1"></i>
-            <span>Báo cáo thống kê</span>
-            </a>
-        </li>
-        <li class="sidebar-item">
-            <a {% if request.path== '/admin/rules' %}
-            class ="sidebar-link active" href="#"
-            {% else %}
-            class="sidebar-link" href="{{ url_for('admin_rules_view') }}"
-            {% endif %}
-            >
-            <i class="lni lni-bookmark-1"></i>
-            <span>Thay đổi quy định</span>
-            </a>
-        </li>
-        {% elif current_user.role.name == 'INSTRUCTOR' %}
-        <li class="sidebar-item">
-            <a {% if request.path== '/giang-vien/bang-diem' %}
-            class="sidebar-link active" href="#"
-            {% else %}
-            class="sidebar-link" href="{{ url_for('instructor_home_view') }}"
-            {% endif %}
-            >
-            <i class="lni lni-bookmark-1"></i>
-            <span>Quản lý điểm</span>
-            </a>
-        </li>
+        {% endfor %}
         {% endif %}
     </ul>
     <div class="sidebar-footer mx-auto" style="color:white">

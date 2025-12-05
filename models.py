@@ -46,6 +46,7 @@ class Enrollment(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False, primary_key=True)
     class_id = db.Column(db.Integer, db.ForeignKey('class.id'), nullable=False, primary_key=True)
     course_id = db.Column(db.Integer, nullable=False)
+    receipt_id = db.Column(db.Integer, db.ForeignKey('receipt.id'), nullable=True)
 
     __table_args__ = (
         UniqueConstraint('user_id', 'class_id'),
@@ -53,7 +54,6 @@ class Enrollment(db.Model):
     )
 
     enroll_date = db.Column(db.DateTime, nullable=False, default=datetime.now())
-    detail = db.relationship('ReceiptDetails', backref='enrollment', uselist=False, lazy=True)
 
 
 class Receipt(db.Model):
@@ -62,17 +62,9 @@ class Receipt(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     created_at = db.Column(db.DateTime, nullable=False, default=datetime.now())
     status = db.Column(Enum(Status), nullable=False, default=Status.PENDING)
+    amount = db.Column(db.Float, nullable=False, default=0.0)
 
-    receipt_details = db.relationship('ReceiptDetails', backref='receipt', lazy=True)
-
-
-class ReceiptDetails(db.Model):
-    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-
-    receipt_id = db.Column(db.Integer, db.ForeignKey('receipt.id'), nullable=False)
-    enrollment_id = db.Column(db.Integer, db.ForeignKey('enrollment.id'), nullable=False, unique=True)
-    description = db.Column(db.String(255), nullable=True)
-    unit_price = db.Column(db.Float, nullable=False, default=0.0)
+    enrollments = db.relationship('Enrollment', backref='receipt', lazy=True)
 
 
 class Class(db.Model):

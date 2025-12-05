@@ -4,7 +4,7 @@ from sqlalchemy.orm import joinedload
 import cloudinary.uploader
 
 from enums import Role, Status
-from models import User, Course, Class, Enrollment, Receipt, ReceiptDetails
+from models import User, Course, Class, Enrollment, Receipt
 import hashlib
 from __init__ import app, db
 
@@ -88,9 +88,7 @@ def get_enrollment_with_receipt(user_id):
     query = db.session.query(Enrollment, Class, Course, Receipt.status).join(Class,
                                                                              Enrollment.class_id == Class.id).join(
         Course, Course.id == Class.course_id).filter(
-        Enrollment.user_id == user_id).outerjoin(ReceiptDetails,
-                                                 ReceiptDetails.enrollment_id == Enrollment.id).outerjoin(Receipt,
-                                                                                                          Receipt.id == ReceiptDetails.receipt_id)
+        Enrollment.user_id == user_id).outerjoin(Receipt, Receipt.id == Enrollment.receipt_id)
 
     query = query.filter(Enrollment.user_id == user_id)
     return query
@@ -101,7 +99,7 @@ def get_no_receipt_enrollments(user_id):
                                                                                                           Enrollment.course_id == Course.id)
     query = query.filter(
         ~exists().where(
-            (ReceiptDetails.enrollment_id == Enrollment.id)
+            (Receipt.id == Enrollment.receipt_id)
         ), Enrollment.user_id == user_id)
     return query.all()
 
@@ -117,8 +115,7 @@ def get_receipt_by_user_id(user_id):
 
 def get_enrollment_receipts_details(user_id, receipt_id, status='Pending'):
     query = db.session.query(Enrollment, Class, Course).join(
-        ReceiptDetails, ReceiptDetails.enrollment_id == Enrollment.id).join(
-        Receipt, Receipt.id == ReceiptDetails.receipt_id).join(
+        Receipt, Receipt.id == Enrollment.receipt_id).join(
         Class, Enrollment.class_id == Class.id).join(
         Course, Enrollment.course_id == Course.id).filter(
         Receipt.user_id == user_id,
@@ -190,23 +187,32 @@ def add_user(name, username, password_hash, role, avatar):
     db.session.commit()
 
 
-def add_receipt(user_id, enrollment_ids, prices):
+def add_receipt(user_id, enrollment_ids):
     try:
         receipt = Receipt(user_id=user_id)
         db.session.add(receipt)
         db.session.flush()
-        for i in range(len(enrollment_ids)):
-            detail = ReceiptDetails(
-                unit_price=prices[i],
-                receipt_id=receipt.id,
-                enrollment_id=enrollment_ids[i],
-            )
-            db.session.add(detail)
+        update_receipt_id_for_enrollments(enrollment_ids, receipt.id)
+        db.session.commit()
+        return True
+    except Exception as ex:
+        print(ex)
+        db.session.rollback()
+        return False
+
+
+def update_receipt_id_for_enrollments(enrollment_ids, receipt_id):
+    try:
+        enrollments = db.session.query(Enrollment).filter(Enrollment.id.in_(enrollment_ids)).all()
+        for enrollment in enrollments:
+            if enrollment.receipt_id is not None:
+                raise Exception("enrollment created already")
+            enrollment.receipt_id = receipt_id
         db.session.commit()
         return True
     except Exception as ex:
         db.session.rollback()
-        return False
+        raise ex
 
 
 def confirm_receipt(receipt_id):
