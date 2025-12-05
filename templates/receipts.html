@@ -17,6 +17,12 @@
                     </tr>
                     </thead>
                     <tbody>
+                    {% if not receipts %}
+                    <tr>
+                        <td colspan="5" class="text-center">Chưa có hoá đơn</td>
+                    </tr>
+                    {% endif %}
+
                     {% for r, user_name in receipts %}
                     <tr data-receipt-id="{{ r.id }}" data-user-id="{{ r.user_id }}">
                         <td>{{ r.id }}</td>
