@@ -140,8 +140,15 @@ def get_enrollment_by_id(enrollment_id):
 
 def delete_enrollment(enrollment):
     try:
+        receipt_id = None
         for detail in enrollment.detail:
             db.session.delete(detail)
+            if receipt_id is None:
+                receipt_id = detail.receipt_id
+
+        if receipt_id is not None:
+            receipt = get_receipt_by_id(receipt_id)
+            db.session.delete(receipt)
         db.session.delete(enrollment)
         db.session.commit()
         return True

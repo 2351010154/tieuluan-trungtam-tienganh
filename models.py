@@ -53,7 +53,7 @@ class Enrollment(db.Model):
     )
 
     enroll_date = db.Column(db.DateTime, nullable=False, default=datetime.now())
-    detail = db.relationship('ReceiptDetails', backref='enrollment', lazy=True)
+    detail = db.relationship('ReceiptDetails', backref='enrollment', uselist=False, lazy=True)
 
 
 class Receipt(db.Model):
