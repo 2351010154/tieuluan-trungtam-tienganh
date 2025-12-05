@@ -441,7 +441,17 @@ button.delete-course-btn {
     color: #B3261E;
     font-size: 13px;
 }
-
+.receipt-details-btn {
+    background-color: #2a2a2a;
+    color: #fff;
+    border: none;
+    padding: 9px 25px;
+    border-radius: 4px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 0.2s;
+}
 
 
 

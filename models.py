@@ -318,6 +318,7 @@ if __name__ == "__main__":
             {"username": "student", "password": "1", "role": Role.STUDENT},
             {"username": "student2", "password": "1", "role": Role.STUDENT},
             {"username": "student3", "password": "1", "role": Role.STUDENT},
+            {"username": "cashier", "password": "1", "role": Role.CASHIER},
         ]
         for u in users:
             user = User(username=u['username'], role=u['role'], name=u.get('name', 'User'))

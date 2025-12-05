@@ -15,73 +15,74 @@ from models import User
 
 
 def get_sidebar_items():
-    sidebar_config = {
-        'STUDENT': [
+    sidebar_items = {
+        Role.STUDENT: [
             {
-                'label': 'Dashboard',
+                'label': 'Trang Chủ',
                 'icon_type': 'svg',
                 'icon_path': '/svg/dashboard.html',
                 'path': '/home',
-                'url_name': 'home_view'
+                'url_name': 'home_view',
             },
             {
-                'label': 'Đăng ký khoá học',
+                'label': 'Các khoá học',
                 'icon_type': 'svg',
                 'icon_path': '/svg/courses.html',
                 'path': '/courses',
-                'url_name': 'courses_view'
+                'url_name': 'courses_view',
             },
+        ],
+        Role.INSTRUCTOR: [
+            {
+                'label': 'Bảng điểm',
+                'icon_type': 'icon',
+                'icon_class': 'lni lni-bookmark-1',
+                'path': '/giang-vien/bang-diem',
+                'url_name': 'instructor_home_view',
+            }
+        ],
+        Role.CASHIER: [
             {
                 'label': 'Lập hoá đơn',
                 'icon_type': 'icon',
                 'icon_class': 'lni lni-bookmark-1',
                 'path': '/invoice',
-                'url_name': 'invoice_view'
+                'url_name': 'invoice_view',
             },
             {
-                'label': 'Hoá đơn',
+                'label': 'Hoá đơn chờ duyệt',
                 'icon_type': 'icon',
                 'icon_class': 'lni lni-bookmark-1',
                 'path': '/receipts',
-                'url_name': 'receipts_view'
+                'url_name': 'receipts_view',
             }
         ],
-        'ADMIN': [
+        Role.ADMIN: [
             {
-                'label': 'Dashboard',
+                'label': 'Trang Chủ Admin',
                 'icon_type': 'icon',
                 'icon_class': 'lni lni-bookmark-1',
-                'path': '/admin',
-                'url_name': 'admin_home_view'
+                'path': '/admins',
+                'url_name': 'admin_home_view',
             },
             {
-                'label': 'Báo cáo thống kê',
+                'label': 'Báo Cáo',
                 'icon_type': 'icon',
                 'icon_class': 'lni lni-bookmark-1',
-                'path': '/admin/baocao',
-                'url_name': 'admin_baocao_view'
+                'path': '/admins/baocao',
+                'url_name': 'admin_baocao_view',
             },
             {
-                'label': 'Thay đổi quy định',
+                'label': 'Quy Định',
                 'icon_type': 'icon',
                 'icon_class': 'lni lni-bookmark-1',
-                'path': '/admin/rules',
-                'url_name': 'admin_rules_view'
-            }
-        ],
-        'INSTRUCTOR': [
-            {
-                'label': 'Quản lý điểm',
-                'icon_type': 'icon',
-                'icon_class': 'lni lni-bookmark-1',
-                'path': '/giang-vien/bang-diem',
-                'url_name': 'instructor_home_view'
+                'path': '/admins/rules',
+                'url_name': 'admin_rules_view',
             }
         ]
     }
-
     if current_user.is_authenticated:
-        return sidebar_config.get(current_user.role.name, [])
+        return sidebar_items.get(current_user.role, [])
     return []
 
 
@@ -106,14 +107,12 @@ def login_process():
 
     if user and user.check_password(password):
         login_user(user)
-
-        if user.role == Role.ADMIN:
-            return redirect(url_for('admin_home_view'))
-        elif user.role == Role.STUDENT:
-            return redirect(url_for('home_view'))
-        elif user.role == Role.INSTRUCTOR:
-            return redirect(url_for('instructor_home_view'))
-
+        home_page = None
+        for item in get_sidebar_items():
+            if item['url_name']:
+                home_page = item['url_name']
+                break
+        return redirect(url_for(home_page))
     return render_template('index.html', err_mgs='Sai mật khẩu hoặc tài khoản')
 
 
@@ -367,7 +366,7 @@ def create_receipt():
         enrollment_ids = body.get('enrollment_ids', [])
         prices = body.get('prices', [])
 
-        if dao.add_receipt(user_id, enrollment_ids):
+        if dao.add_receipt(user_id, enrollment_ids, prices):
             return jsonify({
                 'msg': 'success'
             })

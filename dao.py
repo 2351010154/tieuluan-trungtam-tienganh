@@ -137,12 +137,7 @@ def get_enrollment_by_id(enrollment_id):
 
 def delete_enrollment(enrollment):
     try:
-        receipt_id = None
-        for detail in enrollment.detail:
-            db.session.delete(detail)
-            if receipt_id is None:
-                receipt_id = detail.receipt_id
-
+        receipt_id = enrollment.receipt_id
         if receipt_id is not None:
             receipt = get_receipt_by_id(receipt_id)
             db.session.delete(receipt)
@@ -187,9 +182,9 @@ def add_user(name, username, password_hash, role, avatar):
     db.session.commit()
 
 
-def add_receipt(user_id, enrollment_ids):
+def add_receipt(user_id, enrollment_ids, prices):
     try:
-        receipt = Receipt(user_id=user_id)
+        receipt = Receipt(user_id=user_id, amount=sum([int(s) for s in prices]))
         db.session.add(receipt)
         db.session.flush()
         update_receipt_id_for_enrollments(enrollment_ids, receipt.id)
