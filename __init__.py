@@ -6,8 +6,10 @@ import logging
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 import cloudinary
+import resend
 
-twilioRecovery = "MFD4B8DPW6543CAFW9JLKMF6"
+resend.api_key = "re_5JKGrhjL_DJxRtm6uWFMs8r7Sk6fSXkGB"
+from_email = "no-reply@resend.dev"
 
 logging.basicConfig()
 logging.getLogger('sqlalchemy.engine').setLevel(logging.INFO)

@@ -1,5 +1,6 @@
 import math
 
+import resend
 from flask import render_template, session, request, url_for, jsonify
 from flask_login import current_user, logout_user, login_user, login_required
 from werkzeug.utils import redirect
@@ -10,7 +11,7 @@ from models import Role, only_current_user
 import dao
 import enums
 
-from __init__ import app, db, login_manager
+from __init__ import app, db, login_manager, from_email
 from models import User
 
 
@@ -113,7 +114,7 @@ def login_process():
                 home_page = item['url_name']
                 break
         return redirect(url_for(home_page))
-    return render_template('index.html', err_mgs='Sai mật khẩu hoặc tài khoản')
+    return render_template('index.html', err_msg='Sai mật khẩu hoặc tài khoản')
 
 
 @app.route('/register')
@@ -131,12 +132,25 @@ def register_process():
         return render_template('register.html', err_msg=err_msg)
 
     avatar = request.files.get('avatar')
+    email = request.form['email']
     try:
         dao.add_user(name=request.form['name'],
                      username=request.form['username'],
                      password_hash=request.form['password'],
+                     email=email,
                      role=Role.STUDENT,
                      avatar=avatar)
+        html_content = "<h1>Welcome to Our Platform</h1><p>Thank you for registering, {}!</p>".format(
+            request.form['name'])
+
+        r = resend.Emails.send({
+            "from": from_email,
+            "to": email,
+            "subject": "Welcome to Our Platform",
+            "html": html_content,
+        })
+        print(r)
+
         return redirect(url_for('index'))
     except Exception as ex:
         print(f"Lỗi đăng ký: {str(ex)}")  # In lỗi ra terminal để debug
@@ -389,6 +403,31 @@ def confirm_receipt(receipt_id):
         return jsonify({
             'error': 'cannot confirm receipt'
         })
+
+
+@app.route('/api/send-receipt', methods=['POST'])
+def get_receipt_table():
+    body = request.json
+    table_html = body.get('table_html')
+    user_id = body.get('user_id')
+    user = dao.get_user_by_id(user_id)
+
+    params = {
+        "from": from_email,
+        "to": user.email,
+        "subject": "Your Receipt",
+        "html": table_html,
+    }
+    try:
+        r = resend.Emails.send(params)
+    except Exception as ex:
+        print(ex)
+        return jsonify({
+            'error': 'cannot send email'
+        })
+    return jsonify({
+        'msg': 'success'
+    })
 
 
 @app.route('/test')

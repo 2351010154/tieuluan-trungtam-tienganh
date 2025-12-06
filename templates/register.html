@@ -12,13 +12,20 @@
             <div class="h-8"></div>
             <form action="{{ url_for('register_process') }}" enctype="multipart/form-data" method="POST">
                 <div class="form-floating">
-                    <input type="text" name="username" class="form-control" id="floatingInput" placeholder="username" required>
+                    <input type="text" name="username" class="form-control" id="floatingInput" placeholder="username"
+                           required>
                     <label for="floatingInput">Họ và tên</label>
                 </div>
                 <div class="h-6"></div>
                 <div class="form-floating">
                     <input type="text" name="name" class="form-control" id="floatingInput" placeholder="name" required>
                     <label for="floatingInput">Tên tài khoản</label>
+                </div>
+                <div class="h-6"></div>
+                <div class="form-floating">
+                    <input type="email" name="email" class="form-control"
+                           placeholder="Email" required>
+                    <label>Email</label>
                 </div>
                 <div class="h-6"></div>
                 <div class="form-floating">
