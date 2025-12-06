@@ -181,7 +181,15 @@ def receipts_view():
 @login_required
 def admin_home_view():
     if current_user.is_authenticated:
-        return render_template('admin_home.html')
+        revenue, growth = dao.get_revenue_stats()
+
+        new_students = dao.get_monthly_new_students()
+        total_classes = dao.count_total_classes()
+        return render_template('admin_home.html',
+                               revenue=revenue,
+                               growth_percent=growth,
+                               new_students=new_students,
+                               total_classes=total_classes)
     return redirect(url_for('index'))
 
 

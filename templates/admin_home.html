@@ -34,13 +34,27 @@
                             </div>
                             <div style="height: 12px;"></div>
                             <div class="d-flex flex-row">
-                                <p class="course-title fs-3">150.000.000 ₫</p>
+                                <p class="course-title fs-3">{{ "{:,.0f}".format(revenue) }} ₫</p>
                             </div>
                             <hr class="my-3 opacity-25">
                             <div class="d-flex flex-row align-items-center">
                                 <div class="d-flex flex-column">
-                                    <p class="text-success fw-bold m-0"><i class="fa-solid fa-arrow-up"></i> 12%</p>
-                                    <p class="me-auto text-light-custom">So với tháng trước</p>
+                                    <div class="d-flex flex-column">
+                                        {% if growth_percent > 0 %}
+                                        <p class="text-success fw-bold m-0">
+                                            <i class="fa-solid fa-arrow-up"></i> {{ growth_percent }}%
+                                        </p>
+                                        {% elif growth_percent < 0 %}
+                                        <p class="text-danger fw-bold m-0">
+                                            <i class="fa-solid fa-arrow-down"></i> {{ growth_percent | abs }}%
+                                        </p>
+                                        {% else %}
+                                        <p class="text-secondary fw-bold m-0">
+                                            <i class="fa-solid fa-minus"></i> 0%
+                                        </p>
+                                        {% endif %}
+                                        <p class="me-auto text-light-custom">So với tháng trước</p>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -56,7 +70,7 @@
                             </div>
                             <div style="height: 12px;"></div>
                             <div class="d-flex flex-row">
-                                <p class="course-title fs-3">45 Học viên</p>
+                                <p class="course-title fs-3">{{ new_students }} Học viên</p>
                             </div>
                             <hr class="my-3 opacity-25">
                             <div class="d-flex flex-row align-items-center">
@@ -83,7 +97,7 @@
                             <hr class="my-3 opacity-25">
                             <div class="d-flex flex-row align-items-center">
                                 <div class="d-flex flex-column">
-                                    <p class="text-warning fw-bold m-0">3 Lớp</p>
+                                    <p class="text-warning fw-bold m-0">{{ total_classes }} Lớp</p>
                                     <p class="me-auto text-light-custom">Sắp khai giảng</p>
                                 </div>
                             </div>

@@ -2,6 +2,7 @@ from flask_login import current_user
 from sqlalchemy import func, case, select, exists
 from sqlalchemy.orm import joinedload
 import cloudinary.uploader
+from datetime import datetime
 
 from enums import Role, Status
 from models import User, Course, Class, Enrollment, Receipt
@@ -241,3 +242,59 @@ def register_course(user_id, class_id):
         db.session.add(enrollment)
         return True
     return False
+
+def get_monthly_revenue(month=None, year=None):
+    if not month or not year:
+        now = datetime.now()
+        month = now.month
+        year = now.year
+
+    total = db.session.query(func.sum(Course.price)) \
+        .join(Class, Class.course_id == Course.id) \
+        .join(Enrollment, Enrollment.class_id == Class.id) \
+        .filter(
+        func.extract('month', Enrollment.enroll_date) == month,
+        func.extract('year', Enrollment.enroll_date) == year
+    ).scalar()
+
+    return total if total else 0
+
+def get_monthly_new_students(month=None, year=None):
+    if not month or not year:
+        now = datetime.now()
+        month = now.month
+        year = now.year
+
+    count = db.session.query(func.count(func.distinct(Enrollment.user_id))).filter(
+        func.extract('month', Enrollment.enroll_date) == month,
+        func.extract('year', Enrollment.enroll_date) == year
+    ).scalar()
+
+    return count if count else 0
+
+def count_total_classes():
+    return Class.query.count()
+
+def get_revenue_stats():
+    now = datetime.now()
+    current_month = now.month
+    current_year = now.year
+
+    if current_month == 1:
+        last_month = 12
+        last_month_year = current_year - 1
+    else:
+        last_month = current_month - 1
+        last_month_year = current_year
+
+    revenue_now = get_monthly_revenue(current_month, current_year)
+    revenue_last = get_monthly_revenue(last_month, last_month_year)
+
+    if revenue_last > 0:
+        growth_percent = ((revenue_now - revenue_last) / revenue_last) * 100
+    elif revenue_now > 0:
+        growth_percent = 100
+    else:
+        growth_percent = 0
+
+    return revenue_now, round(growth_percent, 1)
