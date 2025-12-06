@@ -17,7 +17,11 @@
                            id="floatingPassword" placeholder="Password" required>
                     <label for="floatingPassword">Mật khẩu</label>
                 </div>
+                {% if err_msg %}
                 <div class="h-6"></div>
+                <p class="invoice-err show text-center">{{ err_msg }}</p>
+                {% endif %}
+                <div class="py-2"></div>
                 <button type="submit" class="btn btn-primary w-100">Đăng nhập</button>
 
                 <div class="h-3"></div>

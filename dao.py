@@ -167,7 +167,7 @@ def get_courses():
     return Course.query.all()
 
 
-def add_user(name, username, password_hash, role, avatar):
+def add_user(name, username, password_hash, role, avatar, email):
     avatar_url = None
     if avatar:
         res = cloudinary.uploader.upload(avatar)
@@ -175,6 +175,7 @@ def add_user(name, username, password_hash, role, avatar):
 
     u = User(name=name,
              username=username,
+             email=email,
              role=role,
              avatar=avatar_url)
 

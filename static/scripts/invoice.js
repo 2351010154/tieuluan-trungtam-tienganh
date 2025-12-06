@@ -161,6 +161,24 @@ if (pay_btn) {
                alert(result['error']);
                return;
             }
+
+            const table_html = document.getElementById('invoice-table').outerHTML;
+            send_receipt_response = await fetch('/api/send-receipt',{
+                method: 'POST',
+                body: JSON.stringify({
+                    'user_id': invoice_id_submit.value,
+                    'table_html': table_html,
+                }),
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            })
+
+            if (!send_receipt_response.ok) {
+                console.log('error sending receipt email');
+                return;
+            }
+
             alert('Thanh toán hóa đơn thành công');
         } else {
             alert('error paying invoice');
