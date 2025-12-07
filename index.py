@@ -45,15 +45,15 @@ def get_sidebar_items():
         Role.CASHIER: [
             {
                 'label': 'Lập hoá đơn',
-                'icon_type': 'icon',
-                'icon_class': 'lni lni-bookmark-1',
+                'icon_type': 'svg',
+                'icon_path': '/svg/dollar.html',
                 'path': '/invoice',
                 'url_name': 'invoice_view',
             },
             {
                 'label': 'Hoá đơn chờ duyệt',
-                'icon_type': 'icon',
-                'icon_class': 'lni lni-bookmark-1',
+                'icon_type': 'svg',
+                'icon_path': '/svg/receipt.html',
                 'path': '/receipts',
                 'url_name': 'receipts_view',
             }
@@ -406,7 +406,7 @@ def confirm_receipt(receipt_id):
 
 
 @app.route('/api/send-receipt', methods=['POST'])
-def get_receipt_table():
+def send_receipt():
     body = request.json
     table_html = body.get('table_html')
     user_id = body.get('user_id')

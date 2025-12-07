@@ -3,7 +3,7 @@ from functools import wraps
 
 from flask_login import UserMixin
 from werkzeug.security import generate_password_hash, check_password_hash
-from sqlalchemy import Enum, UniqueConstraint, Index
+from sqlalchemy import Enum, UniqueConstraint
 from datetime import datetime
 
 from __init__ import db, app
