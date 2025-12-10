@@ -9,6 +9,7 @@ const user_id_param = url.searchParams.get("user_id");
 const receipt_id_param = url.searchParams.get("receipt_id");
 
 let total = 0;
+courses_cached = [];
 
 if (user_id_param) {
     invoice_id_submit.value = user_id_param;
@@ -44,6 +45,7 @@ async function loadEnrollmentForUser(user_id) {
 
 async function loadEnrollmentTable(enrollment_json) {
     invoice_content.innerHTML = "";
+    total = 0;
 
     if (enrollment_json.length === 0) {
         invoice_content.innerHTML = `
@@ -58,6 +60,7 @@ async function loadEnrollmentTable(enrollment_json) {
     for (const enrollment of enrollment_json) {
         row = createRow(enrollment,i)
         invoice_content.appendChild(row);
+        console.log(`adding price: ${enrollment['course_price']}`);
         updateInvoiceTotal(enrollment['course_price']);
         i++;
     }
@@ -128,6 +131,7 @@ async function deleteCourse(button) {
             return;
         }
         row.remove();
+        console.log(`removing price: ${course_price}`);
         updateInvoiceTotal(-course_price);
     } catch (error) {
         console.log('error: ', error);
@@ -223,8 +227,6 @@ if (pay_btn) {
                 console.log('error sending receipt email');
                 return;
             }
-
-            alert('Thanh toán hóa đơn thành công');
         } else {
             alert('error paying invoice');
         }
@@ -236,26 +238,31 @@ const confirm_add_course_btn = document.getElementById('add-courses-confirm-btn'
 const course_select = document.getElementById('courses-select');
 
 add_course_btn.addEventListener('click', async function() {
-    const response = await fetch('/api/courses');
-    const courses_json = await response.json();
-
-    if (courses_json.length === 0) {
+    if (courses_cached.length === 0) {
+        const response = await fetch('/api/courses');
+        const courses_json = await response.json();
+        if (courses_json.length === 0) {
         alert('Không có khoá học nào để thêm');
+        }
+        courses_cached = courses_json;
     }
-    loadModalCourses(courses_json);
+
+    loadModalCourses(courses_cached);
 })
 
 
 async function loadModalCourses(courses) {
-    for (const c of courses) {
+    if (course_select.options.length === 0) {
+        for (const c of courses) {
         classes = await getClassesForCourse(c['id']);
-        for (const cls of classes) {
-            const option = document.createElement('option');
-            option.value = c['id'];
+            for (const cls of classes) {
+                const option = document.createElement('option');
+                option.value = c['id'];
 
-            option.textContent = `${c['name']} - ${cls['name']}`;
-            option.setAttribute('data-class-id', cls['id']);
-            course_select.appendChild(option);
+                option.textContent = `${c['name']} - ${cls['name']}`;
+                option.setAttribute('data-class-id', cls['id']);
+                course_select.appendChild(option);
+            }
         }
     }
 }
@@ -277,7 +284,6 @@ confirm_add_course_btn.addEventListener('click', async function() {
     user_id = invoice_id_submit.value;
 
     if (await addCourseToUser(user_id, selectedCourses)) {
-        alert('Thêm khoá học thành công');
         await loadEnrollmentForUser(user_id);
         addCourseModalReset(selectedCourses);
     }
