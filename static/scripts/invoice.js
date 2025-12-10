@@ -8,6 +8,8 @@ const url = new URL(window.location.href);
 const user_id_param = url.searchParams.get("user_id");
 const receipt_id_param = url.searchParams.get("receipt_id");
 
+let total = 0;
+
 if (user_id_param) {
     invoice_id_submit.value = user_id_param;
     loadPendingEnrollment(user_id_param);
@@ -17,6 +19,7 @@ invoice_id_submit.addEventListener('keyup', async function(event) {
     invoice_err.classList.remove("show");
     invoice_total.textContent = "";
     if (event.key === 'Enter') {
+        total = 0;
         user_id = invoice_id_submit.value;
         await loadEnrollmentForUser(user_id);
     }
@@ -45,7 +48,7 @@ async function loadEnrollmentTable(enrollment_json) {
     if (enrollment_json.length === 0) {
         invoice_content.innerHTML = `
                     <tr>
-                        <td colspan="5" class="text-center">Chưa có khoá học nào được thêm</td>
+                        <td colspan="6" class="text-center">Chưa có khoá học nào được thêm</td>
                     </tr>
         `;
         return;
@@ -55,11 +58,17 @@ async function loadEnrollmentTable(enrollment_json) {
     for (const enrollment of enrollment_json) {
         row = createRow(enrollment,i)
         invoice_content.appendChild(row);
+        updateInvoiceTotal(enrollment['course_price']);
         i++;
     }
 
-    total = enrollment_json.reduce((total, enrollment) => total + enrollment['course_price'], 0).toLocaleString();
-    invoice_total.textContent = total;
+
+}
+
+function updateInvoiceTotal(amount) {
+    total += amount ? amount : 0;
+    formattedTotal = total.toLocaleString();
+    invoice_total.textContent = formattedTotal;
 }
 
 function createRow(enrollment, idx) {
@@ -77,17 +86,53 @@ function createRow(enrollment, idx) {
     levelCell.textContent = enrollment['course_level'];
     classCell = document.createElement('td');
     classCell.textContent = enrollment['class_name'];
+
+    classCell.setAttribute('data-class-id', enrollment['class_id']);
+
     priceCell = document.createElement('td');
     priceCell.textContent = enrollment['course_price'].toLocaleString();
 
     priceCell.setAttribute('data-price', enrollment['course_price']);
+
+    deleteCell = document.createElement('td');
+    deleteCell.innerHTML = `
+        <button class="delete-course-btn" onclick="deleteCourse(this); updateInvoiceTotal();">
+            <i class="bi bi-trash fs-5"></i>
+        </button>
+    `;
 
     row.appendChild(idCell);
     row.appendChild(courseNameCell);
     row.appendChild(levelCell);
     row.appendChild(classCell);
     row.appendChild(priceCell);
+    row.appendChild(deleteCell);
     return row
+}
+
+async function deleteCourse(button) {
+    row = button.closest('tr');
+    user_id = invoice_id_submit.value;
+    class_id = row.children[3].getAttribute('data-class-id');
+    course_price = row.children[4].getAttribute('data-price');
+    try {
+        const response = await fetch(`/api/enrollment/${user_id}/${class_id}`,{
+            method: 'DELETE',
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        });
+        const data = await response.json();
+        if (data['error']) {
+            console.log('error: ', data['error']);
+            return;
+        }
+        row.remove();
+        updateInvoiceTotal(-course_price);
+    } catch (error) {
+        console.log('error: ', error);
+        return;
+    }
 }
 
 const invoice_create = document.getElementById('invoice-create');
@@ -186,3 +231,105 @@ if (pay_btn) {
     })
 }
 
+const add_course_btn = document.getElementById('invoice-add-course');
+const confirm_add_course_btn = document.getElementById('add-courses-confirm-btn');
+const course_select = document.getElementById('courses-select');
+
+add_course_btn.addEventListener('click', async function() {
+    const response = await fetch('/api/courses');
+    const courses_json = await response.json();
+
+    if (courses_json.length === 0) {
+        alert('Không có khoá học nào để thêm');
+    }
+    loadModalCourses(courses_json);
+})
+
+
+async function loadModalCourses(courses) {
+    for (const c of courses) {
+        classes = await getClassesForCourse(c['id']);
+        for (const cls of classes) {
+            const option = document.createElement('option');
+            option.value = c['id'];
+
+            option.textContent = `${c['name']} - ${cls['name']}`;
+            option.setAttribute('data-class-id', cls['id']);
+            course_select.appendChild(option);
+        }
+    }
+}
+
+async function getClassesForCourse(course_id) {
+    response = await fetch(`/api/courses/${course_id}/classes`)
+    if (!response.ok) {
+        alert('error getting classes ');
+        return;
+    }
+    classes_json = await response.json();
+
+    return classes_json;
+}
+
+
+confirm_add_course_btn.addEventListener('click', async function() {
+    const selectedCourses = course_select.selectedOptions;
+    user_id = invoice_id_submit.value;
+
+    if (await addCourseToUser(user_id, selectedCourses)) {
+        alert('Thêm khoá học thành công');
+        await loadEnrollmentForUser(user_id);
+        addCourseModalReset(selectedCourses);
+    }
+});
+
+function addCourseModalReset() {
+    course_select.selectedIndex = -1;
+    course_select.value = null;
+    for (const option of course_select) {
+        option.selected = false;
+    }
+
+    $(course_select).val(null).trigger('change.select2');
+
+
+    add_courses_modal = bootstrap.Modal.getInstance(document.getElementById('add-courses-to-user-modal'));
+    add_courses_modal.hide();
+}
+
+async function addCourseToUser(user_id, selectedCourses) {
+    const selectedArray = Array.from(selectedCourses);
+    class_ids = selectedArray.map(option => option.getAttribute('data-class-id'))
+    console.log(class_ids);
+    if (user_id === "") {
+        alert('Vui lòng nhập mã số sinh viên trước khi thêm khoá học');
+        return false;
+    }
+
+    if (selectedCourses.length === 0) {
+        alert('Vui lòng chọn ít nhất một khoá học để thêm');
+        return false;
+    }
+
+    const response = await fetch('/api/enrollments', {
+        method: 'POST',
+        body: JSON.stringify({
+            'user_id': user_id,
+            'class_ids': class_ids
+        }),
+        headers: {
+            'Content-Type': 'application/json'
+        }
+    })
+
+    if (!response.ok) {
+        alert('error add course to user');
+        return false;
+    }
+    data = await response.json();
+    if (data['error']) {
+        alert(data['error']);
+        return false;
+    }
+    return true;
+}

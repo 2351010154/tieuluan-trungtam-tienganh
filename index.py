@@ -13,6 +13,7 @@ import enums
 
 from __init__ import app, db, login_manager, from_email
 from models import User
+from utils import sendEmail
 
 
 def get_sidebar_items():
@@ -143,13 +144,7 @@ def register_process():
         html_content = "<h1>Welcome to Our Platform</h1><p>Thank you for registering, {}!</p>".format(
             request.form['name'])
 
-        r = resend.Emails.send({
-            "from": from_email,
-            "to": email,
-            "subject": "Welcome to Our Platform",
-            "html": html_content,
-        })
-        print(r)
+        sendEmail(email, "Welcome to Our Platform", html_content)
 
         return redirect(url_for('index'))
     except Exception as ex:
@@ -243,6 +238,26 @@ def courses_view():
     return redirect(url_for('index'))
 
 
+@app.route('/api/courses', methods=['GET'])
+def get_courses_api():
+    courses = dao.get_courses()
+    if courses:
+        course_list = []
+        for c in courses:
+            course_list.append({
+                'id': c.id,
+                'name': c.name,
+                'price': c.price,
+                'level': c.level.value,
+                'status': c.status.value,
+                'description': c.description
+            })
+        return jsonify(course_list)
+    return jsonify({
+        'error': 'courses not found'
+    })
+
+
 @app.route('/api/courses/<int:course_id>', methods=['GET'])
 def get_course_api(course_id):
     course = dao.get_course_by_id(course_id)
@@ -257,9 +272,10 @@ def get_course_api(course_id):
                 'description': course.description
             }
         )
-
     else:
-        return jsonify({'error': 'Course not found'}), 404
+        return jsonify({
+            'error': 'course not found'
+        })
 
 
 @app.route('/api/courses/<int:course_id>/classes', methods=['GET'])
@@ -305,11 +321,13 @@ def get_user_api():
     )
 
 
-@app.route('/api/courses/register', methods=['POST'])
-def register_course_api():
+@app.route('/api/enrollment', methods=['POST'])
+def create_enrollment():
     body = request.json
+    user_id = int(body.get('user_id'))
+    class_id = int(body.get('class_id'))
 
-    if dao.register_course(body['user_id'], body['class_id']):
+    if dao.register_course(user_id, class_id):
         db.session.commit()
         return jsonify({
             'msg': 'success'
@@ -320,9 +338,31 @@ def register_course_api():
     })
 
 
+@app.route('/api/enrollments', methods=['POST'])
+def create_enrollments():
+    body = request.json
+    user_id = int(body.get('user_id'))
+    class_ids = body.get('class_ids', [])
+
+    try:
+        with db.session.begin_nested():
+            for class_id in class_ids:
+                if not dao.register_course(user_id, class_id):
+                    raise Exception("class full")
+        db.session.commit()
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({
+            'error': 'cannot create enrollments',
+        })
+    return jsonify({
+        'msg': 'success',
+    })
+
+
 @app.route('/api/enrollment/<int:user_id>/<int:class_id>', methods=['DELETE'])
 def delete_enrollment_api(user_id, class_id):
-    if not only_current_user(user_id):
+    if not only_current_user(user_id) and current_user.role == Role.STUDENT:
         return jsonify({
             'error': 'permission denied'
         })
@@ -348,7 +388,6 @@ def get_enrollment_api(user_id):
     no_receipt = request.args.get('no_receipt')
     status = request.args.get('status')
     receipt_id = request.args.get('receipt_id', type=int)
-    enrollment = []
     if no_receipt == 'true':
         enrollment = dao.get_no_receipt_enrollments(user_id)
     elif status:
@@ -356,7 +395,6 @@ def get_enrollment_api(user_id):
     else:
         enrollment = dao.get_enrollment_by_user(user_id).all()
 
-    print(enrollment)
     enrollment_list = []
     for e, c, course in enrollment:
         enrollment_list.append(
@@ -366,7 +404,8 @@ def get_enrollment_api(user_id):
                 'course_price': course.price,
                 'class_name': c.name,
                 'course_level': course.level.value,
-                'receipt_id': receipt_id if receipt_id else None
+                'receipt_id': receipt_id if receipt_id else None,
+                'class_id': c.id
             }
         )
     return jsonify(enrollment_list)
@@ -411,15 +450,10 @@ def send_receipt():
     table_html = body.get('table_html')
     user_id = body.get('user_id')
     user = dao.get_user_by_id(user_id)
-
-    params = {
-        "from": from_email,
-        "to": user.email,
-        "subject": "Your Receipt",
-        "html": table_html,
-    }
     try:
-        r = resend.Emails.send(params)
+        sendEmail(to=user.email,
+                  subject='Your Receipt',
+                  html_content=table_html)
     except Exception as ex:
         print(ex)
         return jsonify({

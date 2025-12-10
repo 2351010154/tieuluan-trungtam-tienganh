@@ -52,17 +52,17 @@ detail_buttons.forEach((button) => {
         detail_cards.innerHTML = "";
         card_type = [
             {
-                'name': 'Price',
+                'name': 'Giá',
                 'value': course_json['price'].toLocaleString(),
                 'icon': 'dollar.png',
             },
             {
-                'name': 'Level',
+                'name': 'Cấp độ',
                 'value': course_json['level'],
                 'icon': 'star.png',
             },
             {
-                'name': 'Status',
+                'name': 'Hình thức học',
                 'value': course_json['status'],
                 'icon': 'cloud.png',
             },
@@ -127,7 +127,7 @@ async function classSelectLoader(course_id) {
 
 
 function courseRegister(user_id, class_id) {
-        return fetch('/api/courses/register', {
+        return fetch('/api/enrollment', {
                 method: 'POST',
                 body: JSON.stringify({
                     'user_id': user_id,
@@ -168,7 +168,7 @@ registerBtn.addEventListener('click', async function() {
                     enroll_err_label.textContent = json_response['error'];
                     return;
                 }
-                let modal = bootstrap.Modal.getInstance(document.getElementById("modal"));
+                modal = bootstrap.Modal.getInstance(document.getElementById("modal"));
                 modal.hide();
           } else {
                 enroll_err_label.classList.add("show");
