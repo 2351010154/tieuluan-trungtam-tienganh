@@ -4,6 +4,7 @@ import resend
 from flask import render_template, session, request, url_for, jsonify
 from flask_login import current_user, logout_user, login_user, login_required
 from werkzeug.utils import redirect
+from datetime import datetime
 
 from dao import get_enrolled_courses_id
 from models import Role, only_current_user
@@ -194,16 +195,27 @@ def receipts_view():
 @app.route('/admins')
 @login_required
 def admin_home_view():
-    if current_user.is_authenticated:
+    if current_user.is_authenticated and current_user.role == Role.ADMIN:
         revenue, growth = dao.get_revenue_stats()
-
         new_students = dao.get_monthly_new_students()
         total_classes = dao.count_total_classes()
+        total_all_students = dao.count_total_students()
+
+        current_year = datetime.now().year
+
+        revenue_chart_data = dao.stats_revenue_by_year(current_year)
+
+        source_chart_data = dao.stats_enrollment_by_level()
+
         return render_template('admin_home.html',
                                revenue=revenue,
                                growth_percent=growth,
                                new_students=new_students,
-                               total_classes=total_classes)
+                               total_classes=total_classes,
+                               total_all_students=total_all_students,
+                               revenue_chart_data=revenue_chart_data,
+                               source_chart_data=source_chart_data)
+
     return redirect(url_for('index'))
 
 

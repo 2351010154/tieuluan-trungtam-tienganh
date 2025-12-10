@@ -1,64 +1,48 @@
 document.addEventListener('DOMContentLoaded', function() {
-    const ctx = document.getElementById('myChart').getContext('2d');
 
-    const dataValues = [170, 130, 350, 280, 320, 360];
-    const labels = ['Tháng 1', 'Tháng 2', 'Tháng 3', 'Tháng 4', 'Tháng 5', 'Tháng 6'];
+    const revenueCtx = document.getElementById('revenueChart');
+    if (revenueCtx) {
+        const dataFromDB = window.revenueData || [0,0,0,0,0,0,0,0,0,0,0,0];
 
-    new Chart(ctx, {
-        type: 'bar',
-        data: {
-            labels: labels,
-            datasets: [{
-                label: 'Doanh thu',
-                data: dataValues,
-                backgroundColor: '#1C4E64',
-                borderRadius: 0,
-                barPercentage: 0.7,
-                categoryPercentage: 0.8
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: {
-                    display: false
-                },
-                tooltip: {
-                    enabled: true
-                }
+        new Chart(revenueCtx.getContext('2d'), {
+            type: 'bar',
+            data: {
+                labels: ['Tháng 1', 'Tháng 2', 'Tháng 3', 'Tháng 4', 'Tháng 5', 'Tháng 6', 'Tháng 7', 'Tháng 8', 'Tháng 9', 'Tháng 10', 'Tháng 11', 'Tháng 12'],
+                datasets: [{
+                    label: 'Doanh thu',
+
+                    data: dataFromDB,
+
+                    backgroundColor: '#3b82f6',
+                    borderRadius: 0,
+                    barPercentage: 0.6,
+                    categoryPercentage: 0.8
+                }]
             },
-            scales: {
-                y: {
-                    beginAtZero: true,
-                    max: 400,
-                    ticks: {
-                        stepSize: 100,
-                        font: { size: 12 },
-                        color: '#666'
-                    },
-                    grid: {
-                        color: '#E5E5E5',
-                    },
-                    border: { display: false }
-                },
-                x: {
-                    grid: {
-                        display: true,
-                        color: '#E5E5E5'
-                    },
-                    ticks: {
-                        font: { size: 12 },
-                        color: '#666',
-                        padding: 10
-                    },
-                    border: { display: false }
-                }
-            }
-        }
-    });
-});
+        });
+    }
 
-function updateChart() {
-    alert("Đang tải dữ liệu mới...");
-}
+    const sourceCtx = document.getElementById('sourceChart');
+    if (sourceCtx) {
+        const sourceFromDB = window.sourceData || [0, 0, 0];
+
+        new Chart(sourceCtx.getContext('2d'), {
+            type: 'doughnut',
+            data: {
+                labels: ['Beginner', 'Intermediate', 'Advanced'],
+                datasets: [{
+
+                    data: sourceFromDB,
+
+                    backgroundColor: [
+                        '#3b82f6',
+                        '#f59e0b',
+                        '#ef4444'
+                    ],
+                    borderWidth: 0,
+                    hoverOffset: 4
+                }]
+            },
+        });
+    }
+});

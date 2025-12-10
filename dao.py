@@ -299,3 +299,40 @@ def get_revenue_stats():
         growth_percent = 0
 
     return revenue_now, round(growth_percent, 1)
+
+def count_total_students():
+    return User.query.filter(User.role == Role.STUDENT).count()
+
+
+def stats_revenue_by_year(year):
+    query = db.session.query(
+        func.extract('month', Receipt.created_at),
+        func.sum(Receipt.amount)
+    ).filter(
+        func.extract('year', Receipt.created_at) == year,
+        Receipt.status == Status.PAID
+    ).group_by(func.extract('month', Receipt.created_at)).all()
+
+    data = [0] * 12
+
+    for month, amount in query:
+        data[int(month) - 1] = amount
+
+    return data
+
+
+def stats_enrollment_by_level():
+    query = db.session.query(Course.level, func.count(Enrollment.id)) \
+        .join(Class, Class.course_id == Course.id) \
+        .join(Enrollment, Enrollment.class_id == Class.id) \
+        .group_by(Course.level).all()
+
+    stats = {str(level): count for level, count in query}
+
+    return [
+        stats.get('Level.BEGINNER', 0),
+        stats.get('Level.INTERMEDIATE', 0),
+        stats.get('Level.ADVANCED', 0)
+    ]
+
+
