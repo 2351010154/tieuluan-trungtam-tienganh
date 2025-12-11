@@ -7,7 +7,7 @@ from sqlalchemy import Enum, UniqueConstraint
 from datetime import datetime
 
 from __init__ import db, app
-from enums import Role, Level, Mode, Status
+from enums import Role, Level, Mode, Status, ConfigKey
 
 
 def only_current_user(user_id):
@@ -95,11 +95,57 @@ class Course(db.Model):
     def __str__(self):
         return self.name
 
+class Configuration(db.Model):
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    key = db.Column(db.String(50), unique=True, nullable=False)
+    value = db.Column(db.String(50), nullable=False)
+
+    def __str__(self):
+        return f"{self.key}: {self.value}"
 
 if __name__ == "__main__":
     with app.app_context():
         db.drop_all()
         db.create_all()
+
+        users = [
+            {"username": "instructor_thu", "password": "1", "name": "Anh Thư", "role": Role.INSTRUCTOR},
+            {"username": "instructor_tam", "password": "1", "name": "Minh Tâm", "role": Role.INSTRUCTOR},
+            {"username": "instructor_lan", "password": "1", "name": "Phương Lan", "role": Role.INSTRUCTOR},
+            {"username": "instructor_linh", "password": "1", "name": "Khánh Linh", "role": Role.INSTRUCTOR},
+            {"username": "instructor_phuc", "password": "1", "name": "Trần Phúc", "role": Role.INSTRUCTOR},
+
+            {"username": "instructor_nhu", "password": "1", "name": "Huỳnh Như", "role": Role.INSTRUCTOR},
+            {"username": "instructor_truong", "password": "1", "name": "Văn Trường", "role": Role.INSTRUCTOR},
+            {"username": "instructor_nam", "password": "1", "name": "Hoài Nam", "role": Role.INSTRUCTOR},
+            {"username": "instructor_kiet", "password": "1", "name": "Anh Kiệt", "role": Role.INSTRUCTOR},
+            {"username": "instructor_tram", "password": "1", "name": "Bảo Trâm", "role": Role.INSTRUCTOR},
+
+            {"username": "instructor_my", "password": "1", "name": "Hiền My", "role": Role.INSTRUCTOR},
+            {"username": "instructor_han", "password": "1", "name": "Gia Hân", "role": Role.INSTRUCTOR},
+            {"username": "instructor_thien", "password": "1", "name": "Đức Thiện", "role": Role.INSTRUCTOR},
+            {"username": "instructor_vy", "password": "1", "name": "Thảo Vy", "role": Role.INSTRUCTOR},
+            {"username": "instructor_minh", "password": "1", "name": "Lê Minh", "role": Role.INSTRUCTOR},
+
+            {"username": "instructor_khanh", "password": "1", "name": "Nhã Khánh", "role": Role.INSTRUCTOR},
+            {"username": "instructor_loan", "password": "1", "name": "Hồng Loan", "role": Role.INSTRUCTOR},
+            {"username": "instructor_duy", "password": "1", "name": "Quang Duy", "role": Role.INSTRUCTOR},
+            {"username": "instructor_tam2", "password": "1", "name": "Thanh Tâm", "role": Role.INSTRUCTOR},
+            {"username": "instructor_an", "password": "1", "name": "Tường An", "role": Role.INSTRUCTOR},
+
+            {"username": "admin", "password": "1", "role": Role.ADMIN},
+            {"username": "student", "password": "1", "role": Role.STUDENT},
+            {"username": "student2", "password": "1", "role": Role.STUDENT},
+            {"username": "student3", "password": "1", "role": Role.STUDENT},
+            {"username": "cashier", "password": "1", "role": Role.CASHIER},
+        ]
+        for u in users:
+            user = User(username=u['username'], role=u['role'], name=u.get('name', 'User'))
+            user.set_password(u['password'])
+            db.session.add(user)
+
+        db.session.commit()
+
         course = [
             {
                 "name": "Nền tảng Ngữ pháp Tiếng Anh",
@@ -212,6 +258,13 @@ if __name__ == "__main__":
                 "price": 300000
             }
         ]
+        for c in course:
+            new_course = Course(**c)
+            db.session.add(new_course)
+
+        db.session.commit()
+
+
 
         classes = [
             {"name": "EN1", "course_id": 1, "instructor_id": 1, "max_students": 25},
@@ -249,43 +302,18 @@ if __name__ == "__main__":
             new_class = Class(**cls)
             db.session.add(new_class)
 
-        for c in course:
-            new_course = Course(**c)
-            db.session.add(new_course)
-        users = [
-            {"username": "instructor_thu", "password": "1", "name": "Anh Thư", "role": Role.INSTRUCTOR},
-            {"username": "instructor_tam", "password": "1", "name": "Minh Tâm", "role": Role.INSTRUCTOR},
-            {"username": "instructor_lan", "password": "1", "name": "Phương Lan", "role": Role.INSTRUCTOR},
-            {"username": "instructor_linh", "password": "1", "name": "Khánh Linh", "role": Role.INSTRUCTOR},
-            {"username": "instructor_phuc", "password": "1", "name": "Trần Phúc", "role": Role.INSTRUCTOR},
+        db.session.commit()
 
-            {"username": "instructor_nhu", "password": "1", "name": "Huỳnh Như", "role": Role.INSTRUCTOR},
-            {"username": "instructor_truong", "password": "1", "name": "Văn Trường", "role": Role.INSTRUCTOR},
-            {"username": "instructor_nam", "password": "1", "name": "Hoài Nam", "role": Role.INSTRUCTOR},
-            {"username": "instructor_kiet", "password": "1", "name": "Anh Kiệt", "role": Role.INSTRUCTOR},
-            {"username": "instructor_tram", "password": "1", "name": "Bảo Trâm", "role": Role.INSTRUCTOR},
-
-            {"username": "instructor_my", "password": "1", "name": "Hiền My", "role": Role.INSTRUCTOR},
-            {"username": "instructor_han", "password": "1", "name": "Gia Hân", "role": Role.INSTRUCTOR},
-            {"username": "instructor_thien", "password": "1", "name": "Đức Thiện", "role": Role.INSTRUCTOR},
-            {"username": "instructor_vy", "password": "1", "name": "Thảo Vy", "role": Role.INSTRUCTOR},
-            {"username": "instructor_minh", "password": "1", "name": "Lê Minh", "role": Role.INSTRUCTOR},
-
-            {"username": "instructor_khanh", "password": "1", "name": "Nhã Khánh", "role": Role.INSTRUCTOR},
-            {"username": "instructor_loan", "password": "1", "name": "Hồng Loan", "role": Role.INSTRUCTOR},
-            {"username": "instructor_duy", "password": "1", "name": "Quang Duy", "role": Role.INSTRUCTOR},
-            {"username": "instructor_tam2", "password": "1", "name": "Thanh Tâm", "role": Role.INSTRUCTOR},
-            {"username": "instructor_an", "password": "1", "name": "Tường An", "role": Role.INSTRUCTOR},
-
-            {"username": "admin", "password": "1", "role": Role.ADMIN},
-            {"username": "student", "password": "1", "role": Role.STUDENT},
-            {"username": "student2", "password": "1", "role": Role.STUDENT},
-            {"username": "student3", "password": "1", "role": Role.STUDENT},
-            {"username": "cashier", "password": "1", "role": Role.CASHIER},
+        rules = [
+            Configuration(key=ConfigKey.MAX_STUDENTS.value, value='25'),
+            Configuration(key=ConfigKey.FEE_BEGINNER.value, value='1500000'),
+            Configuration(key=ConfigKey.FEE_INTERMEDIATE.value, value='2500000'),
+            Configuration(key=ConfigKey.FEE_ADVANCED.value, value='4000000')
         ]
-        for u in users:
-            user = User(username=u['username'], role=u['role'], name=u.get('name', 'User'))
-            user.set_password(u['password'])
-            db.session.add(user)
+
+        for r in rules:
+            exists = Configuration.query.filter_by(key=r.key).first()
+            if not exists:
+                db.session.add(r)
 
         db.session.commit()

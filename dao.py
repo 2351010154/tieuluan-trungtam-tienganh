@@ -4,8 +4,8 @@ from sqlalchemy.orm import joinedload
 import cloudinary.uploader
 from datetime import datetime
 
-from enums import Role, Status
-from models import User, Course, Class, Enrollment, Receipt
+from enums import Role, Status, ConfigKey, Level
+from models import User, Course, Class, Enrollment, Receipt, Configuration
 import hashlib
 from __init__ import app, db
 
@@ -250,12 +250,10 @@ def get_monthly_revenue(month=None, year=None):
         month = now.month
         year = now.year
 
-    total = db.session.query(func.sum(Course.price)) \
-        .join(Class, Class.course_id == Course.id) \
-        .join(Enrollment, Enrollment.class_id == Class.id) \
-        .filter(
-        func.extract('month', Enrollment.enroll_date) == month,
-        func.extract('year', Enrollment.enroll_date) == year
+    total = db.session.query(func.sum(Receipt.amount)).filter(
+        func.extract('month', Receipt.created_at) == month,
+        func.extract('year', Receipt.created_at) == year,
+        Receipt.status == Status.PAID
     ).scalar()
 
     return total if total else 0
@@ -303,24 +301,6 @@ def get_revenue_stats():
 def count_total_students():
     return User.query.filter(User.role == Role.STUDENT).count()
 
-
-def stats_revenue_by_year(year):
-    query = db.session.query(
-        func.extract('month', Receipt.created_at),
-        func.sum(Receipt.amount)
-    ).filter(
-        func.extract('year', Receipt.created_at) == year,
-        Receipt.status == Status.PAID
-    ).group_by(func.extract('month', Receipt.created_at)).all()
-
-    data = [0] * 12
-
-    for month, amount in query:
-        data[int(month) - 1] = amount
-
-    return data
-
-
 def stats_enrollment_by_level():
     query = db.session.query(Course.level, func.count(Enrollment.id)) \
         .join(Class, Class.course_id == Course.id) \
@@ -335,4 +315,117 @@ def stats_enrollment_by_level():
         stats.get('Level.ADVANCED', 0)
     ]
 
+def stats_revenue(year, period='month'):
+    query = db.session.query(
+        func.extract(period, Receipt.created_at),
+        func.sum(Receipt.amount)
+    ).filter(
+        func.extract('year', Receipt.created_at) == year,
+        Receipt.status == Status.PAID
+    ).group_by(func.extract(period, Receipt.created_at)).all()
 
+    if period == 'quarter':
+        data = [0] * 4
+    else:
+        data = [0] * 12
+
+    for p, amount in query:
+        data[int(p) - 1] = amount
+
+    return data
+
+
+def stats_students(year, period='month'):
+    query = db.session.query(
+        func.extract(period, Enrollment.enroll_date),
+        func.count(func.distinct(Enrollment.user_id))
+    ).filter(
+        func.extract('year', Enrollment.enroll_date) == year
+    ).group_by(func.extract(period, Enrollment.enroll_date)).all()
+
+    if period == 'quarter':
+        data = [0] * 4
+    else:
+        data = [0] * 12
+
+    for p, count in query:
+        data[int(p) - 1] = count
+
+    return data
+
+def stats_students_by_course(year):
+    query = db.session.query(
+        Course.name,
+        func.count(Enrollment.id)
+    ).join(
+        Class, Class.course_id == Course.id
+    ).join(
+        Enrollment, Enrollment.class_id == Class.id
+    ).filter(
+        func.extract('year', Enrollment.enroll_date) == year
+    ).group_by(Course.id, Course.name).all()
+
+    return query
+
+def get_all_rules():
+    configs = Configuration.query.all()
+    data = {c.key: c.value for c in configs}
+
+    return {
+        "max_students": data.get(ConfigKey.MAX_STUDENTS.value, 25),
+        "tuition_fees": [
+            {"id": ConfigKey.FEE_BEGINNER.value, "name": Level.BEGINNER.value,
+             "price": data.get(ConfigKey.FEE_BEGINNER.value, 0)},
+            {"id": ConfigKey.FEE_INTERMEDIATE.value, "name": Level.INTERMEDIATE.value,
+             "price": data.get(ConfigKey.FEE_INTERMEDIATE.value, 0)},
+            {"id": ConfigKey.FEE_ADVANCED.value, "name": Level.ADVANCED.value,
+             "price": data.get(ConfigKey.FEE_ADVANCED.value, 0)}
+        ]
+    }
+
+
+def update_rules(data):
+    try:
+        for key, value in data.items():
+            config = Configuration.query.filter_by(key=key).first()
+            if config:
+                config.value = str(value)
+            else:
+                new_config = Configuration(key=key, value=str(value))
+                db.session.add(new_config)
+
+        level_map = {
+            Level.BEGINNER: ConfigKey.FEE_BEGINNER.value,
+            Level.INTERMEDIATE: ConfigKey.FEE_INTERMEDIATE.value,
+            Level.ADVANCED: ConfigKey.FEE_ADVANCED.value
+        }
+
+        courses = Course.query.all()
+        for c in courses:
+            config_key = level_map.get(c.level)
+            if config_key and config_key in data:
+                c.price = float(data[config_key])
+
+        db.session.commit()
+        return True
+    except Exception as ex:
+        print(ex)
+        db.session.rollback()
+        return False
+
+
+def create_new_class(name, course_id, instructor_id):
+    config_max = Configuration.query.filter_by(key=ConfigKey.MAX_STUDENTS.value).first()
+
+    default_max = int(config_max.value) if config_max else 25
+
+    new_class = Class(
+        name=name,
+        course_id=course_id,
+        instructor_id=instructor_id,
+        max_students=default_max
+    )
+
+    db.session.add(new_class)
+    db.session.commit()
+    return new_class
