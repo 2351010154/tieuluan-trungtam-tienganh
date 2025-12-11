@@ -390,8 +390,14 @@ padding:8px;
     color: #000;
 }
 
-.course-card .delete-course-btn:hover .bin-icon {
-    color: #B3261E;
+.delete-course-btn i {
+  width: 28px;
+  height: 28px;
+}
+
+.delete-course-btn:hover i {
+    color: #B3261E !important;
+    cursor: pointer;
 }
 
 #enroll-error {
@@ -451,6 +457,9 @@ button.delete-course-btn {
     font-weight: 500;
     cursor: pointer;
     transition: background 0.2s;
+}
+.badge-dark {
+    background-color: black;
 }
 
 

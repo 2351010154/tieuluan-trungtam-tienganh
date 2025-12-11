@@ -11,25 +11,32 @@ delete_buttons.forEach((button) => {
         user_id = courseCard.getAttribute('data-user-id');
         class_id = courseCard.getAttribute('data-class-id');
 
-        try {
-            response = await fetch(`/api/enrollment/${user_id}/${class_id}`, {
-                method: 'DELETE',
-                headers: {
-                    'Content-Type': 'application/json',
-                }
-            });
-            data = await response.json();
-            if (data['error']) {
-                console.log('error: ', data['error']);
-            } else {
-                window.location.reload();
-            }
-        } catch (error) {
-            console.log('error: ', error);
+        if (await deleteCourseFromUser(user_id, class_id)) {
+            window.location.reload();
         }
     })
 })
 
+async function deleteCourseFromUser(user_id, class_id) {
+    try {
+        response = await fetch(`/api/enrollment/${user_id}/${class_id}`, {
+            method: 'DELETE',
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        });
+        data = await response.json();
+        if (data['error']) {
+            console.log('error: ', data['error']);
+        } else {
+            return false;
+        }
+    } catch (error) {
+        console.log('error: ', error);
+        return false;
+    }
+    return true;
+}
 
 //detailsBtn = document.getElementById('view-details');
 //detailsBtn.addEventListener('click', function() {
@@ -37,7 +44,8 @@ delete_buttons.forEach((button) => {
 //
 //})
 
-
-
-
-
+$(document).ready(function() {
+    $('.select2').select2({
+        theme: 'bootstrap-5'
+    });
+});

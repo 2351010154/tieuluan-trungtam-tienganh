@@ -9,9 +9,9 @@ class Role(Enum):
 
 
 class Level(Enum):
-    BEGINNER = "Beginner"
-    INTERMEDIATE = "Intermediate"
-    ADVANCED = "Advanced"
+    BEGINNER = "Dễ"
+    INTERMEDIATE = "Trung Cấp"
+    ADVANCED = "Nâng Cao"
 
 class ConfigKey(Enum):
     MAX_STUDENTS = "max_students"
