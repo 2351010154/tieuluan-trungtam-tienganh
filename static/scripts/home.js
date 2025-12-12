@@ -4,11 +4,11 @@
     document.querySelector("#sidebar").classList.toggle("expand");
  });
 
-delete_buttons = document.querySelectorAll('.delete-course-btn');
+const delete_buttons = document.querySelectorAll('.delete-course-btn');
 delete_buttons.forEach((button) => {
     button.addEventListener('click', async function() {
-        courseCard = button.closest('.course-card');
-        user_id = courseCard.getAttribute('data-user-id');
+                let courseCard = button.closest('.course-card');
+                let user_id = courseCard.getAttribute('data-user-id');
         class_id = courseCard.getAttribute('data-class-id');
 
         if (await deleteCourseFromUser(user_id, class_id)) {
@@ -19,16 +19,16 @@ delete_buttons.forEach((button) => {
 
 async function deleteCourseFromUser(user_id, class_id) {
     try {
-        response = await fetch(`/api/enrollment/${user_id}/${class_id}`, {
+            const response = await fetch(`/api/enrollment/${user_id}/${class_id}`, {
             method: 'DELETE',
             headers: {
                 'Content-Type': 'application/json',
             }
         });
-        data = await response.json();
+                const data = await response.json();
         if (data['error']) {
             console.log('error: ', data['error']);
-            return false
+            return false;
         }
     } catch (error) {
         console.log('error: ', error);

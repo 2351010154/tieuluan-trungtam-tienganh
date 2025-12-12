@@ -75,29 +75,29 @@ function updateInvoiceTotal(amount) {
 }
 
 function createRow(enrollment, idx) {
-    row = document.createElement('tr');
+    let row = document.createElement('tr');
     row.setAttribute('data-receipt-id', enrollment['receipt_id']);
 
-    idCell = document.createElement('td');
+    let idCell = document.createElement('td');
     idCell.textContent = idx + 1;
-    courseNameCell = document.createElement('td');
+    let courseNameCell = document.createElement('td');
     courseNameCell.textContent = enrollment['course_name'];
 
     courseNameCell.setAttribute('data-enrollment-id', enrollment['id']);
 
-    levelCell = document.createElement('td');
+    let levelCell = document.createElement('td');
     levelCell.textContent = enrollment['course_level'];
-    classCell = document.createElement('td');
+    let classCell = document.createElement('td');
     classCell.textContent = enrollment['class_name'];
 
     classCell.setAttribute('data-class-id', enrollment['class_id']);
 
-    priceCell = document.createElement('td');
+    let priceCell = document.createElement('td');
     priceCell.textContent = enrollment['course_price'].toLocaleString();
 
     priceCell.setAttribute('data-price', enrollment['course_price']);
 
-    deleteCell = document.createElement('td');
+    let deleteCell = document.createElement('td');
 
     if (!user_id_param) {
         deleteCell.innerHTML = `
