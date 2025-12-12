@@ -239,9 +239,20 @@ def get_pending_receipts_with_user():
     return query.all()
 
 
+def get_users_with_receipt_status_by_class(class_id, status):
+    query = db.session.query(func.count(Enrollment.id)).join(
+        Receipt, Receipt.id == Enrollment.receipt_id).join(
+        Class, Class.id == Enrollment.class_id).filter(
+        Class.id == class_id,
+        Receipt.status == status
+    )
+    return query
+
+
 def register_course(user_id, class_id):
     class_ = get_class_by_id(class_id)
-    if len(class_.users) > class_.max_students:
+    users_in_class = get_users_with_receipt_status_by_class(class_id, Status.PAID).scalar()
+    if users_in_class > class_.max_students:
         return None
 
     enrollment = Enrollment(
@@ -252,6 +263,7 @@ def register_course(user_id, class_id):
     db.session.add(enrollment)
     db.session.flush()
     return enrollment.id
+
 
 def get_monthly_revenue(month=None, year=None):
     if not month or not year:
@@ -267,6 +279,7 @@ def get_monthly_revenue(month=None, year=None):
 
     return total if total else 0
 
+
 def get_monthly_new_students(month=None, year=None):
     if not month or not year:
         now = datetime.now()
@@ -280,8 +293,10 @@ def get_monthly_new_students(month=None, year=None):
 
     return count if count else 0
 
+
 def count_total_classes():
     return Class.query.count()
+
 
 def get_revenue_stats():
     now = datetime.now()
@@ -307,8 +322,10 @@ def get_revenue_stats():
 
     return revenue_now, round(growth_percent, 1)
 
+
 def count_total_students():
     return User.query.filter(User.role == Role.STUDENT).count()
+
 
 def stats_enrollment_by_level():
     query = db.session.query(Course.level, func.count(Enrollment.id)) \
@@ -323,6 +340,7 @@ def stats_enrollment_by_level():
         stats.get('Level.INTERMEDIATE', 0),
         stats.get('Level.ADVANCED', 0)
     ]
+
 
 def stats_revenue(year, period='month'):
     query = db.session.query(
@@ -362,6 +380,7 @@ def stats_students(year, period='month'):
 
     return data
 
+
 def stats_students_by_course(year):
     query = db.session.query(
         Course.name,
@@ -375,6 +394,7 @@ def stats_students_by_course(year):
     ).group_by(Course.id, Course.name).all()
 
     return query
+
 
 def get_all_rules():
     configs = Configuration.query.all()

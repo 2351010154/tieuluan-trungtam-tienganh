@@ -22,8 +22,9 @@
                              data-class-id="{{ e.class_id }}" data-enrollment-id="{{ e.id }}">
                             <div class="d-flex flex-row align-items-center">
                                 {% if status.value != 'Paid' %}
-                                <a href="#" class="payment-btn" onclick="openPaymentWindow({{ e.id }})">
-                                    <span class="badge text-bg-primary" style="font-size: 18px;">Thanh toán</span>
+                                <a href="#" class="payment-btn" onclick="openPaymentWindow({{ e.id }})"
+                                   style="cursor: pointer;">
+                                    <span class="badge text-bg-primary" style="font-size: 18px; ">Thanh toán</span>
                                 </a>
                                 {% else %}
                                 <div class="difficulty-badge">

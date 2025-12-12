@@ -6,7 +6,7 @@ from flask_login import current_user, logout_user, login_user, login_required
 from werkzeug.utils import redirect
 from datetime import datetime
 
-from dao import get_enrolled_courses_id
+from dao import get_enrolled_courses_id, get_users_with_receipt_status_by_class
 from models import Role, only_current_user
 
 import dao
@@ -216,6 +216,7 @@ def get_chart_data():
 
     return jsonify(data)
 
+
 @app.route('/admins')
 @login_required
 def admin_home_view():
@@ -375,7 +376,7 @@ def get_classes_by_course_api(course_id):
                 'instructor': c.instructor.name,
                 'name': c.name,
                 'max_students': c.max_students,
-                'current_size': len(c.users),
+                'current_size': get_users_with_receipt_status_by_class(c.id, 'PAID').scalar(),
                 'course_id': c.course.id,
                 'price': c.course.price
             })
