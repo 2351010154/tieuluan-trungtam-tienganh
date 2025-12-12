@@ -28,8 +28,7 @@ async function deleteCourseFromUser(user_id, class_id) {
         data = await response.json();
         if (data['error']) {
             console.log('error: ', data['error']);
-        } else {
-            return false;
+            return false
         }
     } catch (error) {
         console.log('error: ', error);
@@ -43,6 +42,7 @@ async function deleteCourseFromUser(user_id, class_id) {
 //    console.log('test');
 //
 //})
+
 
 $(document).ready(function() {
     $('.select2').select2({

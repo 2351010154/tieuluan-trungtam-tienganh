@@ -30,7 +30,7 @@
             {% for l in levels %}
             <a href="{{ url_for('courses_view', difficulty=l.value, keyword= request.args.get('keyword'), hide_enrolled = request.args.get('hide_enrolled') )}} ">
                 <div class="dif-card {{ 'active' if request.args.get('difficulty') == l.value else ''}}">
-                    <p>{{ l.value }}</p>
+                    <p>{{ level_vn[l] }}</p>
                     <div class="d-flex flex-row">
                         <p class="fw-bold fs-4">{{ total_courses[loop.index] }}</p>
                     </div>

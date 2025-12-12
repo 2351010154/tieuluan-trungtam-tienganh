@@ -9,9 +9,9 @@ class Role(Enum):
 
 
 class Level(Enum):
-    BEGINNER = "Dễ"
-    INTERMEDIATE = "Trung Cấp"
-    ADVANCED = "Nâng Cao"
+    BEGINNER = "Beginner"
+    INTERMEDIATE = "Intermediate"
+    ADVANCED = "Advanced"
 
 
 class Mode(Enum):

@@ -115,6 +115,8 @@ async function classSelectLoader(course_id) {
             option.setAttribute('data-instructor', classItem['instructor']);
             option.setAttribute('data-size', classItem['current_size']);
             option.setAttribute('data-max-size', classItem['max_students']);
+            option.setAttribute('data-course-id', classItem['course_id']);
+            option.setAttribute('data-price', classItem['price']);
 
 
             enrollSelect.appendChild(option);
@@ -149,16 +151,15 @@ enrollSelect.addEventListener('change', function() {
     enrollSize.value = `${classSize}/${maxSize}`;
 })
 
+
 registerBtn = document.getElementById('course-register')
 registerBtn.addEventListener('click', async function() {
           const response = await fetch('/api/user');
           const user = await response.json();
           const user_id = user['id'];
-          const class_id = parseInt(enrollSelect.value);
+          const class_id = enrollSelect.value;
 
           const register_response = await courseRegister(user_id, class_id);
-
-
 
           if (register_response.ok) {
                 const json_response = await register_response.json();
@@ -168,6 +169,9 @@ registerBtn.addEventListener('click', async function() {
                     enroll_err_label.textContent = json_response['error'];
                     return;
                 }
+
+                openPaymentWindow(json_response['enrollment_id']);
+
                 modal = bootstrap.Modal.getInstance(document.getElementById("modal"));
                 modal.hide();
           } else {
@@ -176,6 +180,9 @@ registerBtn.addEventListener('click', async function() {
           }
     }
 )
+
+
+
 
 let debounceTimeOut = null;
 function debounceSearch() {

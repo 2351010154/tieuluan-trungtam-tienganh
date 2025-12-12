@@ -5,6 +5,6 @@ pay_btns.forEach((button) => {
         currentRow = button.closest('tr');
         user_id = currentRow.getAttribute('data-user-id');
         receipt_id = currentRow.getAttribute('data-receipt-id');
-        window.open(`/invoice?user_id=${user_id}&receipt_id=${receipt_id}`, '_blank');
+        window.open(`/create-invoice?user_id=${user_id}&receipt_id=${receipt_id}`, '_blank');
     })
 })

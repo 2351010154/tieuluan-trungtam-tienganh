@@ -13,7 +13,7 @@ import enums
 
 from __init__ import app, db, login_manager, from_email
 from models import User
-from utils import sendEmail
+from utils import sendEmail, level_vn
 
 
 def get_sidebar_items():
@@ -49,7 +49,7 @@ def get_sidebar_items():
                 'icon_type': 'svg',
                 'icon_path': '/svg/dollar.html',
                 'path': '/invoice',
-                'url_name': 'invoice_view',
+                'url_name': 'create_invoice_view',
             },
             {
                 'label': 'Hoá đơn chờ duyệt',
@@ -88,15 +88,26 @@ def get_sidebar_items():
     return []
 
 
+def get_home_page():
+    sidebar_items = get_sidebar_items()
+    for item in sidebar_items:
+        if item['url_name']:
+            return item['url_name']
+    return 'index'
+
+
 @app.context_processor
-def sidebar_items():
-    return dict(sidebar_items=get_sidebar_items())
+def common_response():
+    return {
+        'sidebar_items': get_sidebar_items(),
+        'level_vn': level_vn
+    }
 
 
 @app.route('/')
 def index():
     if current_user.is_authenticated:
-        return redirect(url_for('home_view'))
+        return redirect(url_for(get_home_page()))
     return render_template('index.html')
 
 
@@ -110,11 +121,7 @@ def login_process():
     if user and user.check_password(password):
         login_user(user)
         home_page = None
-        for item in get_sidebar_items():
-            if item['url_name']:
-                home_page = item['url_name']
-                break
-        return redirect(url_for(home_page))
+        return redirect(url_for(get_home_page()))
     return render_template('index.html', err_msg='Sai mật khẩu hoặc tài khoản')
 
 
@@ -173,8 +180,19 @@ def home_view():
 
 @app.route('/invoice')
 def invoice_view():
+    enrollment_id = request.args.get('enrollment_id', type=int)
+    enrollment = dao.get_enrollment_details_by_id(enrollment_id)
+    if enrollment:
+        e, c, course = enrollment
+        if current_user.is_authenticated:
+            return render_template('invoice.html', enrollment=e, class_=c, course=course)
+    return redirect(url_for('index'))
+
+
+@app.route('/create-invoice')
+def create_invoice_view():
     if current_user.is_authenticated:
-        return render_template('invoice.html')
+        return render_template('create-invoice.html')
     return redirect(url_for('index'))
 
 
@@ -290,7 +308,9 @@ def get_classes_by_course_api(course_id):
                 'instructor': c.instructor.name,
                 'name': c.name,
                 'max_students': c.max_students,
-                'current_size': len(c.users)
+                'current_size': len(c.users),
+                'course_id': c.course.id,
+                'price': c.course.price
             })
         return jsonify(class_list)
     return jsonify({
@@ -327,12 +347,13 @@ def create_enrollment():
     user_id = int(body.get('user_id'))
     class_id = int(body.get('class_id'))
 
-    if dao.register_course(user_id, class_id):
+    enrollment_id = dao.register_course(user_id, class_id)
+    if enrollment_id:
         db.session.commit()
         return jsonify({
-            'msg': 'success'
+            'msg': 'success',
+            'enrollment_id': enrollment_id
         })
-
     return jsonify({
         'error': 'Lớp học đã đầy'
     })
@@ -353,7 +374,7 @@ def create_enrollments():
     except Exception as e:
         db.session.rollback()
         return jsonify({
-            'error': 'cannot create enrollments',
+            'error': e,
         })
     return jsonify({
         'msg': 'success',
@@ -383,20 +404,20 @@ def delete_enrollment_api(user_id, class_id):
         })
 
 
-@app.route('/api/enrollment/<int:user_id>', methods=['GET'])
+@app.route('/api/enrollments/<int:user_id>', methods=['GET'])
 def get_enrollment_api(user_id):
     no_receipt = request.args.get('no_receipt')
     status = request.args.get('status')
     receipt_id = request.args.get('receipt_id', type=int)
     if no_receipt == 'true':
-        enrollment = dao.get_no_receipt_enrollments(user_id)
+        enrollments = dao.get_no_receipt_enrollments(user_id)
     elif status:
-        enrollment = dao.get_enrollment_receipts_details(user_id, receipt_id, status)
+        enrollments = dao.get_enrollment_receipts_details(user_id, receipt_id, status)
     else:
-        enrollment = dao.get_enrollment_by_user(user_id).all()
+        enrollments = dao.get_enrollment_by_user(user_id).all()
 
     enrollment_list = []
-    for e, c, course in enrollment:
+    for e, c, course in enrollments:
         enrollment_list.append(
             {
                 'id': e.id,

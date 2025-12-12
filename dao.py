@@ -131,6 +131,14 @@ def get_enrollment(user_id, class_id):
     return query.first()
 
 
+def get_enrollment_details_by_id(enrollment_id):
+    query = db.session.query(Enrollment, Class, Course).join(
+        Class, Enrollment.class_id == Class.id).join(Course, Enrollment.course_id == Course.id).filter(
+        Enrollment.id == enrollment_id
+    )
+    return query.first()
+
+
 def get_enrollment_by_id(enrollment_id):
     return db.session.query(Enrollment).get(enrollment_id)
 
@@ -232,13 +240,14 @@ def get_pending_receipts_with_user():
 
 def register_course(user_id, class_id):
     class_ = get_class_by_id(class_id)
+    if len(class_.users) > class_.max_students:
+        return None
+
     enrollment = Enrollment(
         user_id=user_id,
         class_id=class_.id,
         course_id=class_.course.id,
     )
-
-    if len(class_.users) < class_.max_students:
-        db.session.add(enrollment)
-        return True
-    return False
+    db.session.add(enrollment)
+    db.session.flush()
+    return enrollment.id
