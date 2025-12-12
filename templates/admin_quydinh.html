@@ -36,11 +36,9 @@
 
             <div class="card border-0 shadow-sm">
                 <div class="card-header bg-white py-3">
-                    <h6 class="fw-bold m-0 text-success"><i class="fa-solid fa-money-bill-wave me-2"></i>2. Quy định Học
-                        phí</h6>
+                    <h6 class="fw-bold m-0 text-success"><i class="fa-solid fa-money-bill-wave me-2"></i>2. Quy định Học phí</h6>
                 </div>
                 <div class="card-body p-4">
-
                     <div class="table-responsive">
                         <table class="table table-bordered align-middle">
                             <thead class="table-light">
@@ -72,13 +70,12 @@
                             </tbody>
                         </table>
                     </div>
-
                 </div>
             </div>
 
             <div class="card border-0 shadow-sm p-3">
                 <div class="d-flex justify-content-end">
-                    <button onclick="saveSettings()" class="btn btn-primary btn-sm px-2">
+                    <button id="btnSaveRules" class="btn btn-primary btn-sm px-2">
                         <i class="fa-solid fa-floppy-disk me-2"></i> Lưu thay đổi
                     </button>
                 </div>
@@ -89,22 +86,7 @@
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-<script>
-    function saveSettings() {
-        const maxStudent = document.getElementById('maxStudent').value;
 
-        if (maxStudent <= 0) {
-            Swal.fire('Lỗi', 'Sĩ số phải lớn hơn 0!', 'error');
-            return;
-        }
+<script src="{{ url_for('static', filename='scripts/rules.js') }}"></script>
 
-        Swal.fire({
-            icon: 'success',
-            title: 'Thành công',
-            text: 'Đã cập nhật quy định mới!',
-            showConfirmButton: false,
-            timer: 1500
-        });
-    }
-</script>
 {% endblock %}

@@ -4,6 +4,7 @@ import resend
 from flask import render_template, session, request, url_for, jsonify
 from flask_login import current_user, logout_user, login_user, login_required
 from werkzeug.utils import redirect
+from datetime import datetime
 
 from dao import get_enrolled_courses_id
 from models import Role, only_current_user
@@ -204,42 +205,108 @@ def receipts_view():
     return redirect(url_for('index'))
 
 
+@app.route('/api/chart-data')
+@login_required
+def get_chart_data():
+    year = request.args.get('year', type=int)
+    if not year:
+        year = datetime.now().year
+
+    data = dao.stats_revenue_by_year(year)
+
+    return jsonify(data)
+
 @app.route('/admins')
 @login_required
 def admin_home_view():
-    if current_user.is_authenticated:
-        return render_template('admin_home.html')
+    if current_user.is_authenticated and current_user.role == Role.ADMIN:
+        revenue, growth = dao.get_revenue_stats()
+        new_students = dao.get_monthly_new_students()
+        total_classes = dao.count_total_classes()
+        total_all_students = dao.count_total_students()
+
+        current_year = datetime.now().year
+
+        revenue_chart_data = dao.stats_revenue(current_year, period='month')
+        source_chart_data = dao.stats_enrollment_by_level()
+
+        return render_template('admin_home.html',
+                               revenue=revenue,
+                               growth_percent=growth,
+                               new_students=new_students,
+                               total_classes=total_classes,
+                               total_all_students=total_all_students,
+                               current_year=current_year,
+                               revenue_chart_data=revenue_chart_data,
+                               source_chart_data=source_chart_data)
+
     return redirect(url_for('index'))
 
 
 @app.route('/admins/baocao')
 @login_required
 def admin_baocao_view():
-    total_records = 50
-    per_page = 10
-    pages = math.ceil(total_records / per_page)
+    if current_user.role == Role.ADMIN:
+        current_year = datetime.now().year
+        return render_template('admin_baocao.html', current_year=current_year)
+    return redirect(url_for('index'))
 
-    current_page = request.args.get('page', 1, type=int)
 
-    return render_template(
-        'admin_baocao.html',
-        pages=pages,
-        current_page=current_page
-    )
+@app.route('/api/stats')
+@login_required
+def get_stats_data():
+    year = request.args.get('year', default=datetime.now().year, type=int)
+    report_type = request.args.get('type', default='revenue')
+    period = request.args.get('period', default='month')
+
+    if report_type == 'course':
+        stats = dao.stats_students_by_course(year)
+
+        labels = [s[0] for s in stats]
+        data = [s[1] for s in stats]
+        label = "Số lượng học viên"
+    else:
+        if period == 'quarter':
+            labels = ["Quý 1", "Quý 2", "Quý 3", "Quý 4"]
+        else:
+            labels = ["Tháng 1", "Tháng 2", "Tháng 3", "Tháng 4", "Tháng 5", "Tháng 6",
+                      "Tháng 7", "Tháng 8", "Tháng 9", "Tháng 10", "Tháng 11", "Tháng 12"]
+
+        if report_type == 'student':
+            data = dao.stats_students(year, period)
+            label = "Số lượng học viên"
+        else:
+            data = dao.stats_revenue(year, period)
+            label = "Doanh thu (VNĐ)"
+
+    return jsonify({
+        'data': data,
+        'label': label,
+        'labels': labels
+    })
 
 
 @app.route('/admins/rules')
+@login_required
 def admin_rules_view():
-    rules_data = {
-        "max_students": 25,
-        "tuition_fees": [
-            {"id": 1, "name": "Beginner", "price": 1500000},
-            {"id": 2, "name": "Intermediate", "price": 2000000},
-            {"id": 3, "name": "Advanced", "price": 3500000}
-        ]
-    }
+    if current_user.role == Role.ADMIN:
+        rules_data = dao.get_all_rules()
+        return render_template('admin_quydinh.html', rules=rules_data)
+    return redirect(url_for('index'))
 
-    return render_template('admin_quydinh.html', rules=rules_data)
+
+@app.route('/api/rules', methods=['PUT'])
+@login_required
+def update_rules_api():
+    if current_user.role != Role.ADMIN:
+        return jsonify({'error': 'Permission denied'}), 403
+
+    data = request.json
+
+    if dao.update_rules(data):
+        return jsonify({'msg': 'success'})
+    else:
+        return jsonify({'error': 'Failed to update rules'}), 500
 
 
 @app.route('/courses')

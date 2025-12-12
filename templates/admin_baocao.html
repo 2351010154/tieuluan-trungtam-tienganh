@@ -1,53 +1,73 @@
 {% extends "layout/base.html" %}
 
 {% block content %}
+<body>
 <div class="wrapper">
     {% include 'sidebar.html' %}
-    <div class="main">
 
-        <header class="page-header">
-                <div class="header-left">
-                    <a href="#" class="back-btn"><i class="fa-solid fa-chevron-left"></i></a>
-                    <h1>Báo cáo thống kê</h1>
-                </div>
-            </header>
-
-            <div class="content-wrapper">
-
-                <div class="filter-box">
-                    <div class="filter-group">
-                        <label>Loại thống kê:</label>
-                        <div class="select-wrapper">
-                            <select id="reportType">
-                                <option>Doanh thu</option>
-                                <option>Số lượng học viên</option>
-                            </select>
-                        </div>
-                    </div>
-
-                    <div class="filter-group">
-                        <label>Thời gian:</label>
-                        <div class="select-wrapper">
-                            <select id="timeRange">
-                                <option>Tháng</option>
-                                <option>Quý</option>
-                                <option>Năm</option>
-                            </select>
-                        </div>
-                    </div>
-
-                    <button class="btn-submit" onclick="updateChart()">Xem kết quả</button>
-                </div>
-
-                <div class="chart-area">
-                    <canvas id="myChart"></canvas>
-                    <div class="y-axis-label">Triệu VNĐ</div>
-                </div>
-
+    <div class="main p-4">
+        <header class="page-header mb-4 d-flex justify-content-between align-items-center">
+            <div class="header-left">
+                <h1 class="fw-bold fs-3 m-0">Báo cáo thống kê</h1>
+                <p class="text-muted small m-0">Phân tích chi tiết hoạt động trung tâm</p>
             </div>
+        </header>
+
+        <div class="content-wrapper">
+
+            <div class="card shadow-sm mb-4">
+                <div class="card-body p-4">
+                    <div class="row g-3 align-items-end">
+
+                        <div class="col-md-3">
+                            <label class="form-label fw-bold">Loại thống kê:</label>
+                            <select id="reportType" class="form-select">
+                                <option value="revenue">Doanh thu</option>
+                                <option value="student">Số lượng học viên (Theo thời gian)</option>
+                                <option value="course">Số lượng học viên (Theo khóa học)</option>
+                            </select>
+                        </div>
+
+                        <div class="col-md-3">
+                            <label class="form-label fw-bold">Kỳ hạn:</label>
+                            <select id="reportPeriod" class="form-select">
+                                <option value="month">Theo Tháng</option>
+                                <option value="quarter">Theo Quý</option>
+                            </select>
+                        </div>
+
+                        <div class="col-md-3">
+                            <label class="form-label fw-bold">Năm tài chính:</label>
+                            <select id="reportYear" class="form-select">
+                                <option value="{{ current_year }}">Năm nay ({{ current_year }})</option>
+                                <option value="{{ current_year - 1 }}">Năm ngoái ({{ current_year - 1 }})</option>
+                                <option value="{{ current_year - 2 }}">Năm {{ current_year - 2 }}</option>
+                            </select>
+                        </div>
+
+                        <div class="col-md-3">
+                            <button id="btnFilter" class="btn btn-primary w-100">
+                                <i class="fa-solid fa-filter me-2"></i>Xem kết quả
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title mb-4" id="chartTitle">Biểu đồ thống kê</h5>
+                    <div style="height: 400px; position: relative;">
+                        <canvas id="detailChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+        </div>
     </div>
 </div>
+
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="{{ url_for('static', filename='scripts/baocao.js') }}"></script>
-
+</body>
 {% endblock %}
