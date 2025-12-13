@@ -1,8 +1,11 @@
  const hamburger = document.querySelector('#toggle-btn');
 
- hamburger.addEventListener("click",function() {
-    document.querySelector("#sidebar").classList.toggle("expand");
- });
+ if (hamburger) {
+      hamburger.addEventListener("click",function() {
+        document.querySelector("#sidebar").classList.toggle("expand");
+      });
+ }
+
 
 const delete_buttons = document.querySelectorAll('.delete-course-btn');
 delete_buttons.forEach((button) => {

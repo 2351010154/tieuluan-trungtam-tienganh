@@ -1,3 +1,6 @@
+import base64
+
+import requests
 from flask_login import current_user
 from sqlalchemy import func, case, select, exists
 from sqlalchemy.orm import joinedload
@@ -7,7 +10,7 @@ from datetime import datetime
 from enums import Role, Status, ConfigKey, Level
 from models import User, Course, Class, Enrollment, Receipt, Configuration
 import hashlib
-from __init__ import app, db
+from __init__ import app, db, endpoint_url, CLIENT_ID, CLIENT_SECRET
 
 
 def get_class_by_id(class_id):
@@ -194,16 +197,18 @@ def add_user(name, username, password_hash, role, avatar, email):
 
 def add_receipt(user_id, enrollment_ids, prices):
     try:
-        receipt = Receipt(user_id=user_id, amount=sum([int(s) for s in prices]))
+        if not enrollment_ids:
+            raise Exception("invalid data")
+        receipt = Receipt(user_id=user_id, amount=sum([float(s) for s in prices]))
         db.session.add(receipt)
         db.session.flush()
         update_receipt_id_for_enrollments(enrollment_ids, receipt.id)
         db.session.commit()
-        return True
+        return receipt
     except Exception as ex:
         print(ex)
         db.session.rollback()
-        return False
+        return None
 
 
 def update_receipt_id_for_enrollments(enrollment_ids, receipt_id):
@@ -220,14 +225,14 @@ def update_receipt_id_for_enrollments(enrollment_ids, receipt_id):
         raise ex
 
 
-def confirm_receipt(receipt_id):
+def change_receipt_status(receipt_id, status):
     try:
-        receipt = get_receipt_by_id(receipt_id)
-        if receipt.status == Status.PAID:
-            return False
-        receipt.status = Status.PAID
+        new_receipt = get_receipt_by_id(receipt_id)
+        if new_receipt.status == status:
+            return None
+        new_receipt.status = status
         db.session.commit()
-        return True
+        return new_receipt
     except Exception as ex:
         print(ex)
         return False
@@ -263,6 +268,26 @@ def register_course(user_id, class_id):
     db.session.add(enrollment)
     db.session.flush()
     return enrollment.id
+
+
+def get_paypal_token():
+    url = f"{endpoint_url}/v1/oauth2/token"
+    auth = f"{CLIENT_ID}:{CLIENT_SECRET}"
+    auth_bytes = auth.encode("utf-8")
+    auth_b64 = base64.b64encode(auth_bytes).decode("utf-8")
+
+    headers = {
+        'Content-Type': 'application/x-www-form-urlencoded',
+        'Authorization': f"Basic ${auth_b64}"
+    }
+    data = {
+        'grant_type': 'client_credentials'
+    }
+
+    response = requests.post(url=url, data=data, headers=headers)
+    if response.status_code == 200:
+        return response.json().get('access_token')
+    return None
 
 
 def get_monthly_revenue(month=None, year=None):
