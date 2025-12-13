@@ -156,7 +156,6 @@ def register_process():
 
         return redirect(url_for('index'))
     except Exception as ex:
-        print(f"Lỗi đăng ký: {str(ex)}")  # In lỗi ra terminal để debug
         return render_template('register.html', err_msg='He thong dang co loi')
 
 
@@ -569,7 +568,6 @@ def send_receipt():
                   subject='Your Receipt',
                   html_content=table_html)
     except Exception as ex:
-        print(ex)
         return jsonify({
             'error': 'cannot send email'
         })
@@ -605,14 +603,6 @@ def create_paypal_order():
             }]
         }
     return None
-
-
-@app.route('/test')
-def test_view():
-    test = dao.get_paypal_token()
-    print(test)
-
-    return 'Test Page'
 
 
 if __name__ == '__main__':

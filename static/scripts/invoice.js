@@ -88,7 +88,6 @@ const paypalButtons = window.paypal.Buttons({
             console.log("order error:", orderError);
 
             if (orderError?.issue === 'INSTRUMENT_DECLINED') {
-                alert('Your payment method was declined. Please try again with a different card or payment method.');
                 return actions.restart();
             } else if (orderError) {
                 throw new Error(`${orderError.description} (${orderError.debug_id})`);
@@ -100,8 +99,6 @@ const paypalButtons = window.paypal.Buttons({
                     const confirm_receipt_json = await confirm_receipt(receipt_json['receipt_id']);
 
                     const send_receipt_email_json = await sendReceiptEmail(user.id);
-
-                    alert('Thank you for your payment! A receipt has been sent to your email.');
 
                 } catch (err) {
                     console.log("error processing receipt:", err);
