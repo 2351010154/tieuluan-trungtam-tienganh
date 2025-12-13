@@ -101,7 +101,7 @@ def get_home_page():
 def common_response():
     return {
         'sidebar_items': get_sidebar_items(),
-        'level_vn': level_vn
+        'level_vn': level_vn,
     }
 
 
@@ -508,9 +508,11 @@ def create_receipt():
         enrollment_ids = body.get('enrollment_ids', [])
         prices = body.get('prices', [])
 
-        if dao.add_receipt(user_id, enrollment_ids, prices):
+        receipt = dao.add_receipt(user_id, enrollment_ids, prices)
+        if receipt:
             return jsonify({
-                'msg': 'success'
+                'msg': 'success',
+                'receipt_id': receipt.id
             })
         else:
             return jsonify({
@@ -522,10 +524,13 @@ def create_receipt():
 
 
 @app.route('/api/receipts/<int:receipt_id>/status', methods=['PUT'])
-def confirm_receipt(receipt_id):
-    if dao.confirm_receipt(receipt_id):
+def change_receipt_status(receipt_id):
+    status = request.json.get('status')
+    new_receipt = dao.change_receipt_status(receipt_id, status)
+    if new_receipt:
         return jsonify({
-            'msg': 'success'
+            'msg': 'success',
+            'receipt_id': new_receipt.id
         })
     else:
         return jsonify({
@@ -553,9 +558,38 @@ def send_receipt():
     })
 
 
+@app.route('/api/get-paypal-token', methods=['GET'])
+def get_paypal_token():
+    token = dao.get_paypal_token()
+    if token:
+        return jsonify({
+            'access_token': token
+        })
+    else:
+        return jsonify({
+            'error': 'cannot get token'
+        })
+
+
+@app.route('/api/create-paypal-order', methods=['POST'])
+def create_paypal_order():
+    token = get_paypal_token()
+    if token:
+        order_data_json = {
+            'intent': 'CAPTURE',
+            'purchase_units': [{
+                'amount': {
+                    'currency_code': 'USD',
+                    'value': '100.00'
+                }
+            }]
+        }
+    return None
+
+
 @app.route('/test')
 def test_view():
-    test = get_enrolled_courses_id(current_user.id)
+    test = dao.get_paypal_token()
     print(test)
 
     return 'Test Page'
