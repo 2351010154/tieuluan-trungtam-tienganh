@@ -9,7 +9,7 @@ const user_id_param = url.searchParams.get("user_id");
 const receipt_id_param = url.searchParams.get("receipt_id");
 
 let total = 0;
-courses_cached = [];
+let courses_cached = [];
 
 if (user_id_param) {
     invoice_id_submit.value = user_id_param;
@@ -20,32 +20,32 @@ invoice_id_submit.addEventListener('keyup', async function(event) {
     invoice_err.classList.remove("show");
     invoice_total.textContent = "";
     if (event.key === 'Enter') {
-        total = 0;
-        user_id = invoice_id_submit.value;
+        let total = 0;
+        let user_id = invoice_id_submit.value;
         await loadEnrollmentForUser(user_id);
     }
 })
 
 
 async function loadPendingEnrollment(user_id) {
-    response = await fetch(`/api/enrollments/${user_id}?receipt_id=${receipt_id_param}&status=Pending`);
-    enrollment_json = await response.json();
+    const response = await fetch(`/api/enrollments/${user_id}?receipt_id=${receipt_id_param}&status=Pending`);
+    const enrollment_json = await response.json();
     loadEnrollmentTable(enrollment_json);
 }
 
 async function loadEnrollmentForUser(user_id) {
-    response = await fetch(`/api/enrollments/${user_id}?no_receipt=true`);
+    const response = await fetch(`/api/enrollments/${user_id}?no_receipt=true`);
     if (!response.ok) {
         alert('Mã số sinh viên không hợp lệ');
         return;
     }
-    enrollment_json = await response.json();
+    const enrollment_json = await response.json();
     loadEnrollmentTable(enrollment_json);
 }
 
 async function loadEnrollmentTable(enrollment_json) {
     invoice_content.innerHTML = "";
-    total = 0;
+    let total = 0;
 
     if (enrollment_json.length === 0) {
         invoice_content.innerHTML = `
@@ -56,9 +56,12 @@ async function loadEnrollmentTable(enrollment_json) {
         return;
     }
 
-    i = 0;
+    let i = 0;
     for (const enrollment of enrollment_json) {
-        row = createRow(enrollment,i)
+        const row = createRow(enrollment,i);
+        if (user_id_param === null) {
+            createDeleteColumn(row);
+        }
         invoice_content.appendChild(row);
         console.log(`adding price: ${enrollment['course_price']}`);
         updateInvoiceTotal(enrollment['course_price']);
@@ -70,59 +73,27 @@ async function loadEnrollmentTable(enrollment_json) {
 
 function updateInvoiceTotal(amount) {
     total += amount ? amount : 0;
-    formattedTotal = total.toLocaleString();
+    let formattedTotal = total.toLocaleString();
     invoice_total.textContent = formattedTotal;
 }
 
-function createRow(enrollment, idx) {
-    let row = document.createElement('tr');
-    row.setAttribute('data-receipt-id', enrollment['receipt_id']);
-
-    let idCell = document.createElement('td');
-    idCell.textContent = idx + 1;
-    let courseNameCell = document.createElement('td');
-    courseNameCell.textContent = enrollment['course_name'];
-
-    courseNameCell.setAttribute('data-enrollment-id', enrollment['id']);
-
-    let levelCell = document.createElement('td');
-    levelCell.textContent = enrollment['course_level'];
-    let classCell = document.createElement('td');
-    classCell.textContent = enrollment['class_name'];
-
-    classCell.setAttribute('data-class-id', enrollment['class_id']);
-
-    let priceCell = document.createElement('td');
-    priceCell.textContent = enrollment['course_price'].toLocaleString();
-
-    priceCell.setAttribute('data-price', enrollment['course_price']);
-
+function createDeleteColumn(row) {
     let deleteCell = document.createElement('td');
-
-    if (!user_id_param) {
-        deleteCell.innerHTML = `
-            <button class="delete-course-btn" onclick="deleteCourse(this); updateInvoiceTotal();">
-                <i class="bi bi-trash fs-5"></i>
-            </button>
-        `;
-
-    }
-
-    row.appendChild(idCell);
-    row.appendChild(courseNameCell);
-    row.appendChild(levelCell);
-    row.appendChild(classCell);
-    row.appendChild(priceCell);
+    deleteCell.innerHTML = `
+        <button class="delete-course-btn" onclick="deleteCourse(this);">
+            <i class="bi bi-trash fs-5"></i>
+        </button>
+    `;
     row.appendChild(deleteCell);
-
-    return row
 }
 
+window.deleteCourse = deleteCourse;
 async function deleteCourse(button) {
-    row = button.closest('tr');
-    user_id = invoice_id_submit.value;
-    class_id = row.children[3].getAttribute('data-class-id');
-    course_price = row.children[4].getAttribute('data-price');
+    let row = button.closest('tr');
+    let user_id = invoice_id_submit.value;
+    let class_id = row.children[3].getAttribute('data-class-id');
+    let course_price = row.children[4].getAttribute('data-price');
+
     try {
         const response = await fetch(`/api/enrollment/${user_id}/${class_id}`,{
             method: 'DELETE',
@@ -147,29 +118,25 @@ async function deleteCourse(button) {
 const invoice_create = document.getElementById('invoice-create');
 if (invoice_create) {
     invoice_create.addEventListener('click', async function() {
-        user_id = invoice_id_submit.value;
+        const user_id = invoice_id_submit.value;
 
-        enrollment_ids = [];
-        prices = []
+        let enrollment_ids = [];
+        let prices = []
 
-        rows = invoice_content.getElementsByTagName('tr');
+        const rows = invoice_content.getElementsByTagName('tr');
 
         for (const row of rows) {
             try {
-                enrollment_id = row.children[1].getAttribute('data-enrollment-id');
+                let enrollment_id = row.children[1].getAttribute('data-enrollment-id');
+                let price = row.children[4].getAttribute('data-price');
+                enrollment_ids.push(enrollment_id);
+                prices.push(price);
             } catch (error) {
                 invoice_err.classList.add("show");
                 invoice_err.textContent = "Không có khoá học để tạo hoá đơn.";
                 return;
             }
-
-
-            price = row.children[4].getAttribute('data-price');
-            enrollment_ids.push(enrollment_id);
-            prices.push(price);
         }
-
-
 
         const response = await fetch('/api/invoice', {
             method: 'POST',
@@ -199,12 +166,16 @@ if (invoice_create) {
 const pay_btn = document.getElementById('invoice-pay-btn');
 if (pay_btn) {
     pay_btn.addEventListener('click', async function() {
-        rows = invoice_content.getElementsByTagName('tr');
+        let rows = invoice_content.getElementsByTagName('tr');
 
-        receipt_id = rows[0].getAttribute('data-receipt-id');
+        let receipt_id = rows[0].getAttribute('data-receipt-id');
+        console.log('paying receipt id:', receipt_id);
 
         const response = await fetch(`/api/receipts/${receipt_id}/status`, {
             method: 'PUT',
+            body: JSON.stringify({
+                'status': 'PAID'
+            }),
             headers: {
                 'Content-Type': 'application/json'
             }
@@ -216,12 +187,12 @@ if (pay_btn) {
                return;
             }
             const table_html = document.getElementById('invoice-table').outerHTML;
-            send_receipt_response = await sendReceiptEmail(invoice_id_submit.value, table_html);
+            const send_receipt_response = await sendReceiptEmail(invoice_id_submit.value, table_html);
             if (!send_receipt_response.ok) {
                 console.log('error sending receipt email');
                 return;
             }
-            send_receipt_data = send_receipt_response.json();
+            const send_receipt_data = send_receipt_response.json();
             if (send_receipt_data['error']) {
                 console.log('error:', send_receipt_data['error']);
                 return;
@@ -278,7 +249,7 @@ if (add_course_btn) {
 async function loadModalCourses(courses) {
     if (course_select.options.length === 0) {
         for (const c of courses) {
-        classes = await getClassesForCourse(c['id']);
+        const classes = await getClassesForCourse(c['id']);
             for (const cls of classes) {
                 const option = document.createElement('option');
                 option.value = c['id'];
@@ -292,12 +263,12 @@ async function loadModalCourses(courses) {
 }
 
 async function getClassesForCourse(course_id) {
-    response = await fetch(`/api/courses/${course_id}/classes`)
+    const response = await fetch(`/api/courses/${course_id}/classes`)
     if (!response.ok) {
         alert('error getting classes ');
         return;
     }
-    classes_json = await response.json();
+    const classes_json = await response.json();
 
     return classes_json;
 }
@@ -305,7 +276,7 @@ async function getClassesForCourse(course_id) {
 
 confirm_add_course_btn.addEventListener('click', async function() {
     const selectedCourses = course_select.selectedOptions;
-    user_id = invoice_id_submit.value;
+    const user_id = invoice_id_submit.value;
 
     if (await addCourseToUser(user_id, selectedCourses)) {
         await loadEnrollmentForUser(user_id);
@@ -323,13 +294,13 @@ function addCourseModalReset() {
     $(course_select).val(null).trigger('change.select2');
 
 
-    add_courses_modal = bootstrap.Modal.getInstance(document.getElementById('add-courses-to-user-modal'));
+    const add_courses_modal = bootstrap.Modal.getInstance(document.getElementById('add-courses-to-user-modal'));
     add_courses_modal.hide();
 }
 
 async function addCourseToUser(user_id, selectedCourses) {
     const selectedArray = Array.from(selectedCourses);
-    class_ids = selectedArray.map(option => option.getAttribute('data-class-id'))
+    const class_ids = selectedArray.map(option => option.getAttribute('data-class-id'))
     console.log(class_ids);
     if (user_id === "") {
         alert('Vui lòng nhập mã số sinh viên trước khi thêm khoá học');
@@ -356,7 +327,7 @@ async function addCourseToUser(user_id, selectedCourses) {
         alert('error add course to user');
         return false;
     }
-    data = await response.json();
+    const data = await response.json();
     if (data['error']) {
         alert(data['error']);
         return false;

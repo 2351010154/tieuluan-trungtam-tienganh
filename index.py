@@ -156,7 +156,6 @@ def register_process():
 
         return redirect(url_for('index'))
     except Exception as ex:
-        print(f"Lỗi đăng ký: {str(ex)}")  # In lỗi ra terminal để debug
         return render_template('register.html', err_msg='He thong dang co loi')
 
 
@@ -442,7 +441,7 @@ def create_enrollments():
     except Exception as e:
         db.session.rollback()
         return jsonify({
-            'error': e,
+            'error': 'cannot enroll',
         })
     return jsonify({
         'msg': 'success',
@@ -500,6 +499,26 @@ def get_enrollment_api(user_id):
     return jsonify(enrollment_list)
 
 
+@app.route('/api/enrollment/<int:enrollment_id>', methods=['GET'])
+def get_enrollment_details_api(enrollment_id):
+    enrollment = dao.get_enrollment_details_by_id(enrollment_id)
+    if enrollment:
+        e, c, course = enrollment
+        return jsonify(
+            {
+                'id': e.id,
+                'course_name': course.name,
+                'course_price': course.price,
+                'class_name': c.name,
+                'course_level': course.level.value,
+                'class_id': c.id
+            }
+        )
+    return jsonify({
+        'error': 'enrollment not found'
+    })
+
+
 @app.route('/api/invoice', methods=['POST'])
 def create_receipt():
     if current_user.is_authenticated:
@@ -549,7 +568,6 @@ def send_receipt():
                   subject='Your Receipt',
                   html_content=table_html)
     except Exception as ex:
-        print(ex)
         return jsonify({
             'error': 'cannot send email'
         })
@@ -585,14 +603,6 @@ def create_paypal_order():
             }]
         }
     return None
-
-
-@app.route('/test')
-def test_view():
-    test = dao.get_paypal_token()
-    print(test)
-
-    return 'Test Page'
 
 
 if __name__ == '__main__':

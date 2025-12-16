@@ -1,9 +1,7 @@
-const enrollment_id = new URLSearchParams(window.location.search).get('enrollment_id');
-console.log(enrollment_id);
 
-window.openPaymentWindow = function openPaymentWindow(enrollment_id) {
-  window.open(`/invoice?enrollment_id=${enrollment_id}`, '_blank');
-}
+
+const enrollment_id_param = new URLSearchParams(window.location.search).get('enrollment_id');
+
 
 async function get_access_token() {
     try {
@@ -42,7 +40,7 @@ const paypalButtons = window.paypal.Buttons({
             'purchase_units': [{
                 'amount': {
                     'currency_code': 'USD',
-                    'value': amount
+                    'value': '100.00'
                 }
             }]
         }
@@ -95,13 +93,16 @@ const paypalButtons = window.paypal.Buttons({
                 throw new Error(`${orderError.description} (${orderError.debug_id})`);
             } else {
 
-                const user = await get_user_info();
-                const receipt_json = await create_receipt(user.id, enrollment_id, amount)
+                try {
+                    const user = await get_user_info();
+                    const receipt_json = await create_receipt(user.id, enrollment_id_param, amount);
+                    const confirm_receipt_json = await confirm_receipt(receipt_json['receipt_id']);
 
-                const confirm_receipt = await confirm_receipt(receipt_json['receipt_id']);
+                    const send_receipt_email_json = await sendReceiptEmail(user.id);
 
-
-                console.log('Capture result', orderData);
+                } catch (err) {
+                    console.log("error processing receipt:", err);
+                }
 
             }
         } catch (err) {
@@ -110,6 +111,63 @@ const paypalButtons = window.paypal.Buttons({
     }
 })
 paypalButtons.render('#paypal-button-container');
+
+async function sendReceiptEmail(user_id) {
+    try {
+        let html = await createReceiptHtml(enrollment_id_param);
+        console.log("receipt html:", html);
+        const response = await fetch('/api/send-receipt', {
+            method: 'POST',
+            body: JSON.stringify({
+                'user_id': user_id,
+                'table_html': html
+            }),
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        });
+        const json_response = await response.json();
+        if (json_response['error']) {
+            console.log("error sending receipt email:", json_response['error']);
+            return;
+        }
+        console.log("receipt email sent:", json_response);
+        return json_response;
+    } catch (err) {
+        console.log("error:", err);
+    }
+}
+
+async function createReceiptHtml(enrollment_id) {
+    const response = await fetch(`/api/enrollment/${enrollment_id}`);
+    const enrollment = await response.json();
+
+    let row = await createReceiptRow(enrollment);
+    let html = `
+        <table class=table>
+            <thead class="table-dark">
+            <tr>
+                <th scope="col">Mã</th>
+                <th scope="col">Tên khoá học</th>
+                <th scope="col">Cấp độ</th>
+                <th scope="col">Lớp</th>
+                <th scope="col">Giá</th>
+                <th scope="col"></th>
+            </tr>
+            </thead>
+
+            <tbody>
+                ${row.outerHTML}
+            </tbody>
+        </table>
+    `
+    return html
+}
+
+async function createReceiptRow(enrollment) {
+    const row = createRow(enrollment, 0);
+    return row;
+}
 
 async function confirm_receipt(receipt_id) {
     try {

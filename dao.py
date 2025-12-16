@@ -157,7 +157,6 @@ def delete_enrollment(enrollment):
         db.session.commit()
         return True
     except Exception as ex:
-        print(ex)
         return False
 
 
@@ -206,7 +205,6 @@ def add_receipt(user_id, enrollment_ids, prices):
         db.session.commit()
         return receipt
     except Exception as ex:
-        print(ex)
         db.session.rollback()
         return None
 
@@ -234,7 +232,6 @@ def change_receipt_status(receipt_id, status):
         db.session.commit()
         return new_receipt
     except Exception as ex:
-        print(ex)
         return False
 
 
@@ -463,7 +460,6 @@ def update_rules(data):
         db.session.commit()
         return True
     except Exception as ex:
-        print(ex)
         db.session.rollback()
         return False
 
