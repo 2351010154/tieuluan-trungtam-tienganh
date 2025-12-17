@@ -100,6 +100,8 @@ const paypalButtons = window.paypal.Buttons({
 
                     const send_receipt_email_json = await sendReceiptEmail(user.id);
 
+                    alert('Thanh toán thành công!');
+
                 } catch (err) {
                     console.log("error processing receipt:", err);
                 }
