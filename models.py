@@ -1,10 +1,12 @@
 import datetime
+import random
 from functools import wraps
 
 from flask_login import UserMixin
+from sqlalchemy.orm import backref
 from werkzeug.security import generate_password_hash, check_password_hash
 from sqlalchemy import Enum, UniqueConstraint
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from __init__ import db, app
 from enums import Role, Level, Mode, Status, ConfigKey
@@ -95,6 +97,7 @@ class Course(db.Model):
     def __str__(self):
         return self.name
 
+
 class Configuration(db.Model):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     key = db.Column(db.String(50), unique=True, nullable=False)
@@ -102,6 +105,34 @@ class Configuration(db.Model):
 
     def __str__(self):
         return f"{self.key}: {self.value}"
+
+
+class Grade(db.Model):
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    class_id = db.Column(db.Integer, db.ForeignKey('class.id'), nullable=False)
+
+    midterm_score = db.Column(db.Float, nullable=False, default=0.0)
+    final_score = db.Column(db.Float, nullable=False, default=0.0)
+    attendance_score = db.Column(db.Float, nullable=False, default=0.0)
+
+    user = db.relationship('User', backref='grades', lazy=True)
+    class_ = db.relationship('Class', backref='grades', lazy=True)
+
+    __table_args__ = (UniqueConstraint('user_id', 'class_id', name='_user_class_grade_uc'),)
+
+
+class Attendance(db.Model):
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    class_id = db.Column(db.Integer, db.ForeignKey('class.id'), nullable=False)
+
+    date = db.Column(db.Date, nullable=False, default=datetime.now().date())
+    is_present = db.Column(db.Boolean, nullable=False, default=False)
+
+    user = db.relationship('User', backref='attendance', lazy=True)
+    class_ = db.relationship('Class', backref='attendance', lazy=True)
+
 
 if __name__ == "__main__":
     with app.app_context():
@@ -134,9 +165,26 @@ if __name__ == "__main__":
             {"username": "instructor_an", "password": "1", "name": "Tường An", "role": Role.INSTRUCTOR},
 
             {"username": "admin", "password": "1", "role": Role.ADMIN},
-            {"username": "student", "password": "1", "role": Role.STUDENT},
-            {"username": "student2", "password": "1", "role": Role.STUDENT},
-            {"username": "student3", "password": "1", "role": Role.STUDENT},
+            {"username": "student_ngoc", "password": "1", "name": "Hồng Ngọc", "role": Role.STUDENT},
+            {"username": "student_loan", "password": "1", "name": "Hồng Loan", "role": Role.STUDENT},
+            {"username": "student_hanh", "password": "1", "name": "Hồng Hạnh", "role": Role.STUDENT},
+            {"username": "student_minh", "password": "1", "name": "Hồng Minh", "role": Role.STUDENT},
+            {"username": "student_ha", "password": "1", "name": "Hồng Hà", "role": Role.STUDENT},
+            {"username": "student_thanh", "password": "1", "name": "Hồng Thanh", "role": Role.STUDENT},
+            {"username": "student_tri", "password": "1", "name": "Minh Trí", "role": Role.STUDENT},
+            {"username": "student_manh", "password": "1", "name": "Duy Manh", "role": Role.STUDENT},
+            {"username": "student_khoa", "password": "1", "name": "Minh Khoa", "role": Role.STUDENT},
+            {"username": "student_khanh", "password": "1", "name": "Duy Khanh", "role": Role.STUDENT},
+            {"username": "student_tam", "password": "1", "name": "Minh Tam", "role": Role.STUDENT},
+            {"username": "student_khoi", "password": "1", "name": "Minh Khoi", "role": Role.STUDENT},
+            {"username": "student_an", "password": "1", "name": "Trong An", "role": Role.STUDENT},
+            {"username": "student_nam", "password": "1", "name": "Phuong Nam", "role": Role.STUDENT},
+            {"username": "student_anh", "password": "1", "name": "Hoang Anh", "role": Role.STUDENT},
+            {"username": "student_minhanh", "password": "1", "name": "Minh Anh", "role": Role.STUDENT},
+            {"username": "student_bao", "password": "1", "name": "Gia Bao", "role": Role.STUDENT},
+            {"username": "student_duyen", "password": "1", "name": "Hong Duyen", "role": Role.STUDENT},
+            {"username": "student_duong", "password": "1", "name": "Thuy Duong", "role": Role.STUDENT},
+            {"username": "student_quan", "password": "1", "name": "Minh Quan", "role": Role.STUDENT},
             {"username": "cashier", "password": "1", "role": Role.CASHIER},
         ]
         for u in users:
@@ -264,8 +312,6 @@ if __name__ == "__main__":
 
         db.session.commit()
 
-
-
         classes = [
             {"name": "EN1", "course_id": 1, "instructor_id": 1, "max_students": 25},
             {"name": "EN2", "course_id": 1, "instructor_id": 5, "max_students": 25},
@@ -317,3 +363,40 @@ if __name__ == "__main__":
                 db.session.add(r)
 
         db.session.commit()
+
+        students_db = User.query.filter_by(role=Role.STUDENT).all()
+        classes_db = Class.query.all()
+        for student in students_db:
+            num_classes = random.randint(1, 3)
+            classes_to_enroll = random.sample(classes_db, num_classes)
+            for cls in classes_to_enroll:
+                existing = Enrollment.query.filter_by(user_id=student.id, course_id=cls.course_id).first()
+                if existing:
+                    continue
+                enroll = Enrollment(user_id=student.id, class_id=cls.id, course_id=cls.course_id)
+                db.session.add(enroll)
+                midterm = round(random.uniform(4.0, 9.5), 1)
+                final = round(random.uniform(4.0, 9.5), 1)
+                attendance_s = round(random.uniform(7.0, 10.0), 1)
+                grade = Grade(
+                    user_id=student.id,
+                    class_id=cls.id,
+                    midterm_score=midterm,
+                    final_score=final,
+                    attendance_score=attendance_s
+                )
+                db.session.add(grade)
+                for i in range(7):
+                    check_date = datetime.now().date() - timedelta(days=i)
+                    is_present = random.choice([True, True, True, False])  # 75% có mặt
+
+                    attend = Attendance(
+                        user_id=student.id,
+                        class_id=cls.id,
+                        date=check_date,
+                        is_present=is_present
+                    )
+                    db.session.add(attend)
+
+                db.session.commit()
+                print("Đã khởi tạo dữ liệu thành công!")

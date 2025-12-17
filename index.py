@@ -3,6 +3,7 @@ import math
 import resend
 from flask import render_template, session, request, url_for, jsonify
 from flask_login import current_user, logout_user, login_user, login_required
+from sqlalchemy.sql.coercions import expect
 from werkzeug.utils import redirect
 from datetime import datetime
 
@@ -42,6 +43,13 @@ def get_sidebar_items():
                 'icon_class': 'lni lni-bookmark-1',
                 'path': '/giang-vien/bang-diem',
                 'url_name': 'instructor_home_view',
+            },
+            {
+                'label': 'Điểm danh',
+                'icon_type': 'icon',
+                'icon_class': 'lni lni-bookmark-1',
+                'path': '/giang-vien/diem-danh',
+                'url_name': 'instructor_attendance_view',
             }
         ],
         Role.CASHIER: [
@@ -386,8 +394,99 @@ def get_classes_by_course_api(course_id):
 
 
 @app.route('/giang-vien/bang-diem')
+@login_required
 def instructor_home_view():
-    return render_template('giaovienindex.html')
+    if current_user.role != Role.INSTRUCTOR:
+        return redirect(url_for('index'))
+    classes = dao.get_classes_by_instructor(current_user.id)
+    select_class_id = request.args.get('class_id', type=int)
+    transcript = []
+    if not select_class_id and classes:
+        select_class_id = classes[0].id
+    if select_class_id:
+        transcript = dao.get_transcript(select_class_id)
+    return render_template('giaovienindex.html', classes=classes, transcript=transcript,
+                           select_class_id=select_class_id)
+
+
+@app.route('/giang-vien/diem-danh')
+@login_required
+def instructor_attendance_view():
+    if current_user.role != Role.INSTRUCTOR:
+        return redirect(url_for('index'))
+    classes = dao.get_classes_by_instructor(current_user.id)
+    select_class_id = request.args.get('class_id', type=int)
+    date_str = request.args.get('date')
+
+    if not select_class_id and classes:
+        select_class_id = classes[0].id
+
+    select_date = datetime.now().date()
+    if date_str:
+        try:
+            select_date = datetime.strptime(date_str, '%Y-%m-%d').date()
+        except ValueError:
+            pass
+
+    attendance_data = []
+    select_class_name = ""
+    if select_class_id:
+        cls = dao.get_class_by_id(select_class_id)
+        if cls:
+            select_class_name = f"{cls.name} - {cls.course.name}"
+        raw_data = dao.get_attendance_list(select_class_id, select_date)
+
+        for user, attendance in raw_data:
+            absences = dao.count_student_absences(user.id, select_class_id)
+            attendance_data.append({
+                'user': user,
+                'attendance': attendance,
+                'absences': absences
+            })
+
+    # --- SỬA LỖI TẠI ĐÂY ---
+    # Đổi tham số cuối cùng từ 'select_date=select_date' thành 'selected_date=select_date'
+    return render_template('GiaoVien_DiemDanh.html',
+                           classes=classes,
+                           attendance_data=attendance_data,
+                           select_class_name=select_class_name,
+                           selected_date=select_date)
+
+
+@app.route('/api/update-grades', methods=['POST'])
+@login_required
+def update_grades():
+    if current_user.role != Role.INSTRUCTOR:
+        return jsonify({'error': 'not authorized'}), 403
+    data = request.json
+    class_id = data.get('class_id')
+    grade = data.get('grades')
+
+    if dao.save_grades_list(class_id, grade):
+        return jsonify({'msg': 'success'})
+    else:
+        return jsonify({'error': 'Failed to save grades'}), 500
+
+
+@app.route('/api/save-attendance', methods=['POST'])
+@login_required
+def save_attendance_api():
+    if current_user.role != Role.INSTRUCTOR:
+        return jsonify({'error': 'Unauthorized'}), 403
+
+    data = request.json
+    class_id = data.get('class_id')
+    date_str = data.get('date')
+    students = data.get('students')
+
+    try:
+        check_date = datetime.strptime(date_str, '%Y-%m-%d').date()
+        if dao.save_attendance_record(class_id, check_date, students):
+            return jsonify({'msg': 'success'})
+        else:
+            return jsonify({'error': 'Failed to save attendance'}), 500
+    except ValueError:
+        return jsonify({'error': 'Invalid date format'}), 400
 
 
 @app.route('/api/user', methods=['GET'])
