@@ -1,14 +1,15 @@
 import base64
 
 import requests
+from authlib.integrations.django_oauth2.resource_protector import return_error_response
 from flask_login import current_user
-from sqlalchemy import func, case, select, exists
+from sqlalchemy import func, case, select, exists, outerjoin
 from sqlalchemy.orm import joinedload
 import cloudinary.uploader
 from datetime import datetime
 
 from enums import Role, Status, ConfigKey, Level
-from models import User, Course, Class, Enrollment, Receipt, Configuration
+from models import User, Course, Class, Enrollment, Receipt, Configuration, Grade, Attendance
 import hashlib
 from __init__ import app, db, endpoint_url, CLIENT_ID, CLIENT_SECRET
 
@@ -417,6 +418,34 @@ def stats_students_by_course(year):
 
     return query
 
+# Trong dao.py
+
+def stats_course_pass_rate(year):
+    """
+    Thống kê tỷ lệ đạt theo khóa học trong một năm cụ thể
+    """
+    query = db.session.query(
+        Course.name,
+        func.count(Grade.id).label('total'),
+        func.sum(case(
+            ((func.coalesce(Grade.midterm_score, 0) + func.coalesce(Grade.final_score, 0)) / 2 >= 5, 1),
+            else_=0
+        )).label('passed')
+    ).join(Class, Class.course_id == Course.id)\
+     .join(Grade, Grade.class_id == Class.id)\
+     .join(Enrollment, Enrollment.user_id == Grade.user_id) \
+     .filter(func.extract('year', Enrollment.enroll_date) == year) \
+     .group_by(Course.id, Course.name).all()
+
+    labels = []
+    values = []
+
+    for name, total, passed in query:
+        labels.append(name)
+        rate = (passed / total) * 100 if total > 0 else 0
+        values.append(round(rate, 1))
+
+    return labels, values
 
 def get_all_rules():
     configs = Configuration.query.all()
@@ -479,3 +508,89 @@ def create_new_class(name, course_id, instructor_id):
     db.session.add(new_class)
     db.session.commit()
     return new_class
+
+
+def get_classes_by_instructor(instructor_id):
+    return Class.query.filter_by(instructor_id=instructor_id).all()
+
+
+def get_transcript(class_id):
+    query = db.session.query(User, Grade).join(Enrollment, Enrollment.user_id == User.id) \
+        .outerjoin(Grade, (Grade.user_id == User.id) & (Grade.class_id == Enrollment.class_id)) \
+        .filter(Enrollment.class_id == class_id) \
+        .all()
+    return query
+
+
+def get_attendance_list(class_id, check_date):
+    query = db.session.query(User, Attendance) \
+        .join(Enrollment, Enrollment.user_id == User.id) \
+        .outerjoin(Attendance, (Attendance.user_id == User.id) & (Attendance.class_id == Enrollment.class_id) & (
+            Attendance.date == check_date)) \
+        .filter(Attendance.class_id == class_id) \
+        .all()
+
+    return query
+
+
+def count_student_absences(user_id, class_id):
+    return Attendance.query.filter(
+        Attendance.user_id == user_id,
+        Attendance.class_id == class_id,
+        Attendance.is_absent == False,
+    ).count()
+
+def save_grades_list(class_id, grades_data):
+    try:
+        for item in grades_data:
+            user_id = item.get('user_id')
+            grade = Grade.query.filter_by(user_id=user_id, class_id=class_id).first()
+
+            if not grade:
+                grade = Grade(user_id=user_id, class_id=class_id)
+                db.session.add(grade)
+
+            grade.midterm_score = float(item['midterm']) if item['midterm'] != "" else None
+            grade.final_score = float(item['final']) if item['final'] != "" else None
+            grade.attendance_score = float(item['attendance']) if item['attendance'] != "" else None
+
+        db.session.commit()
+        return True
+    except Exception as ex:
+        print(f"Error saving grades: {ex}")
+        db.session.rollback()
+        return False
+
+def save_attendance_record(class_id, date_val, attendance_list):
+    try:
+        for item in attendance_list:
+            user_id = item.get('user_id')
+            is_present = item.get('is_present')
+
+            att = Attendance.query.filter_by(user_id=user_id, class_id=class_id, date = date_val).first()
+            if not att:
+                att = Attendance(usr_id=user_id, class_id=class_id, date=date_val, is_present=is_present)
+                db.session.add(att)
+            att.is_present = is_present
+
+        db.session.commit()
+        return True
+    except Exception as ex:
+        print(f"Error saving attendance record: {ex}")
+        db.session.rollback()
+        return False
+def get_attendance_list(class_id, check_date):
+    query = db.session.query(User, Attendance)\
+        .join(Enrollment, Enrollment.user_id == User.id)\
+        .outerjoin(Attendance,(Attendance.user_id == User.id) & (Attendance.class_id == Enrollment.class_id) & (Attendance.date == check_date))\
+        .filter(Enrollment.class_id == class_id)\
+        .all()
+    return query
+def count_student_absences(user_id, class_id):
+    return Attendance.query.filter(
+        Attendance.user_id == user_id,
+        Attendance.class_id == class_id,
+        Attendance.is_present == False
+    ).count()
+
+    return Class.query.filter_by(instructor_id=instructor_id).all

@@ -7,7 +7,6 @@
     <div class="main p-4">
         <div class="d-flex flex-column gap-4">
 
-
             <header class="page-header border-0 p-0 bg-transparent mb-2">
                 <div class="header-left">
                     <a href="#" class="back-btn"><i class="fa-solid fa-chevron-left"></i></a>
@@ -15,71 +14,91 @@
                 </div>
             </header>
 
-
             <div class="card border-0 shadow-sm" style="border-radius: 12px; overflow: hidden; min-height: 600px;">
 
                 <div class="card-body p-4">
 
                     <div class="attendance-header">
-
                         <h5 class="fw-bold m-0 text-uppercase text-secondary" style="font-size: 16px; letter-spacing: 0.5px;">
                             DANH SÁCH HỌC VIÊN
                         </h5>
 
-
                         <div class="attendance-filters">
-                            <label>Ngày:</label>
+                            <form method="GET" action="{{ url_for('instructor_attendance_view') }}" class="d-flex gap-2 align-items-center">
+                                <label>Ngày:</label>
+                                <input type="date" name="date" id="attendDate" class="attendance-input"
+                                       value="{{ selected_date }}" onchange="this.form.submit()">
 
-                            <input type="date" class="attendance-input" value="2025-10-28">
+                                <select class="attendance-input" id="attendClassSelect" style="min-width: 220px;" name="class_id" onchange="this.form.submit()">
+                                    {% if not classes %}
+                                    <option disabled selected>Không có khóa học nào</option>
+                                    {% endif %}
+                                    {% for c in classes %}
+                                    <option value="{{ c.id }}" {% if selected_class_id == c.id %}selected{% endif %}>
+                                        {{ c.name }} - {{ c.course.name }}
+                                    </option>
+                                    {% endfor %}
+                                </select>
+                            </form>
 
-
-                            <select class="attendance-input" style="min-width: 220px;">
-                                <option>Chọn khóa học</option>
-                                <option selected>Tiếng Anh Nâng Cao 4</option>
-                                <option>Giao tiếp cơ bản</option>
-                            </select>
-
-
-                            <button class="btn-filter-blue">
-                                <i class="fa-solid fa-magnifying-glass"></i> Lọc
+                            <!-- Nút Lưu Điểm Danh -->
+                            <button id="btnSaveAttendance" class="btn-filter-blue" style="background-color: #059669;">
+                                <i class="fa-solid fa-check-circle"></i> Lưu điểm danh
                             </button>
                         </div>
                     </div>
 
-
                     <div class="table-responsive">
                         <table class="table attendance-table w-100 m-0">
                             <thead>
-                                <tr>
-                                    <th class="text-start ps-3">HỌC VIÊN</th>
-                                    <th class="text-center">MÔN HỌC</th>
-                                    <th class="text-center">NGÀY</th>
-                                    <th class="text-center">TRẠNG THÁI</th>
-                                    <th class="text-center">SỐ BUỔI VẮNG</th>
-                                </tr>
+                            <tr>
+                                <th class="text-start ps-3">HỌC VIÊN</th>
+                                <th class="text-center">MÔN HỌC</th>
+                                <th class="text-center">NGÀY</th>
+                                <th class="text-center">TRẠNG THÁI</th>
+                                <th class="text-center">SỐ BUỔI VẮNG</th>
+                            </tr>
                             </thead>
                             <tbody>
+                            {% if not attendance_data %}
+                            <tr>
+                                <td colspan="5" class="text-center py-4 text-muted">
+                                    Chưa có học viên nào trong danh sách.
+                                </td>
+                            </tr>
+                            {% else %}
+                            {% for item in attendance_data %}
+                            <tr>
+                                <td class="text-start ps-3 fw-bold text-uppercase">
+                                    <div class="d-flex align-items-center gap-2">
+                                        <div style="width: 32px; height: 32px; background-color: {% if item.attendance and item.attendance.is_present %}#DCFCE7{% else %}#FEF3C7{% endif %}; color: {% if item.attendance and item.attendance.is_present %}#166534{% else %}#92400E{% endif %}; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 12px;">
+                                            {{ item.user.name[0] | upper }}
+                                        </div>
+                                        {{ item.user.name }}
+                                    </div>
+                                </td>
+                                <td class="text-center text-uppercase">{{ selected_class_name }}</td>
+                                <td class="text-center">{{ selected_date.strftime('%d/%m/%Y') }}</td>
 
-                                <tr>
-                                    <td class="text-start ps-3 fw-bold text-uppercase">NGUYỄN VĂN A</td>
-                                    <td class="text-center text-uppercase">TIẾNG ANH NÂNG CAO 4</td>
-                                    <td class="text-center">28/10/2025</td>
-                                    <td class="text-center">
-                                        <span class="fw-bold" style="color: #166534;">CÓ MẶT</span>
-                                    </td>
-                                    <td class="text-center">0</td>
-                                </tr>
+                                <!-- Cột Trạng thái (Checkbox thay vì chỉ hiện text) -->
+                                <td class="text-center">
+                                    <div class="d-flex justify-content-center align-items-center gap-2">
+                                        <div class="form-check form-switch">
+                                            <input class="form-check-input attendance-checkbox" type="checkbox" role="switch"
+                                                   style="width: 3em; height: 1.5em;"
+                                                   data-user-id="{{ item.user.id }}"
+                                                   {% if item.attendance and item.attendance.is_present %}checked{% endif %}>
+                                        </div>
+                                        <span class="small text-muted status-label">
+                                                    {% if item.attendance and item.attendance.is_present %}Có mặt{% else %}Vắng{% endif %}
+                                                </span>
+                                    </div>
+                                </td>
 
-
-                                <tr>
-                                    <td class="text-start ps-3 fw-bold text-uppercase">NGUYỄN VĂN B</td>
-                                    <td class="text-center text-uppercase">TIẾNG ANH NÂNG CAO 4</td>
-                                    <td class="text-center">28/10/2025</td>
-                                    <td class="text-center">
-                                        <span class="fw-bold" style="color: #991b1b;">VẮNG MẶT</span>
-                                    </td>
-                                    <td class="text-center">1</td>
-                                </tr>
+                                <td class="text-center fw-bold text-danger">{{ item.absences }}</td>
+                            </tr>
+                            {% endfor %}
+                            {% endif %}
                             </tbody>
                         </table>
                     </div>
@@ -89,4 +108,7 @@
         </div>
     </div>
 </div>
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="{{ url_for('static', filename='scripts/teacher.js') }}"></script>
 {% endblock %}

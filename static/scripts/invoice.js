@@ -108,6 +108,7 @@ const paypalButtons = window.paypal.Buttons({
 
             }
         } catch (err) {
+            alert('Thanh toán thất bại!');
             console.log(err);
         }
     }

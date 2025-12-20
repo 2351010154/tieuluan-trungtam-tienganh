@@ -38,11 +38,9 @@ document.addEventListener('DOMContentLoaded', function() {
         if (yearSelect && dashboardChart) {
             yearSelect.addEventListener('change', function() {
                 const selectedYear = this.value;
-
                 if (chartDesc) {
                     chartDesc.innerText = `Diễn biến tài chính năm ${selectedYear}`;
                 }
-
                 fetch(`/api/chart-data?year=${selectedYear}`)
                     .then(response => response.json())
                     .then(newData => {
@@ -73,14 +71,25 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
+    const reportTypeSelect = document.getElementById('reportType');
+    const reportPeriodSelect = document.getElementById('reportPeriod');
+
+    if (reportTypeSelect && reportPeriodSelect) {
+        reportTypeSelect.addEventListener('change', function() {
+            if (this.value === 'pass_rate' || this.value === 'course') {
+                reportPeriodSelect.disabled = true;
+            } else {
+                reportPeriodSelect.disabled = false;
+            }
+        });
+    }
 
     const detailChartCanvas = document.getElementById('detailChart');
 
-        if (detailChartCanvas) {
+    if (detailChartCanvas) {
         let myDetailChart = null;
 
         function updateReportChart() {
-            // Lấy giá trị bộ lọc
             const type = document.getElementById('reportType').value;
             const year = document.getElementById('reportYear').value;
             const period = document.getElementById('reportPeriod').value;
@@ -92,7 +101,10 @@ document.addEventListener('DOMContentLoaded', function() {
             btnFilter.innerHTML = '<i class="fa-solid fa-spinner fa-spin me-2"></i>Đang tải...';
             btnFilter.disabled = true;
 
-            const typeText = (type === 'revenue') ? 'Doanh thu' : 'Số lượng học viên';
+            let typeText = 'Số lượng học viên';
+            if (type === 'revenue') typeText = 'Doanh thu';
+            else if (type === 'pass_rate') typeText = 'Tỷ lệ đạt';
+
             const periodText = (period === 'month') ? '' : '(Theo Quý)';
             titleLabel.textContent = `Biểu đồ ${typeText} năm ${year} ${periodText}`;
 
@@ -107,7 +119,9 @@ document.addEventListener('DOMContentLoaded', function() {
                         myDetailChart.destroy();
                     }
 
-                    const barColor = (type === 'revenue') ? '#1C4E64' : '#2563eb';
+                    let barColor = '#2563eb';
+                    if (type === 'revenue') barColor = '#1C4E64';
+                    else if (type === 'pass_rate') barColor = '#10b981';
 
                     myDetailChart = new Chart(detailChartCanvas.getContext('2d'), {
                         type: 'bar',
@@ -134,6 +148,9 @@ document.addEventListener('DOMContentLoaded', function() {
                                             if (context.parsed.y !== null) {
                                                 if (type === 'revenue')
                                                     return label + context.parsed.y.toLocaleString('vi-VN') + ' VNĐ';
+                                                if (type === 'pass_rate')
+                                                    return label + context.parsed.y + '%';
+
                                                 return label + context.parsed.y + ' Học viên';
                                             }
                                             return label;
@@ -148,12 +165,12 @@ document.addEventListener('DOMContentLoaded', function() {
                                     ticks: {
                                         precision: 0,
                                         callback: function(value) {
-                                            if (value % 1 === 0) {
-                                                if (type === 'revenue') return value.toLocaleString('vi-VN');
-                                                return value;
-                                            }
+                                            if (type === 'revenue') return value.toLocaleString('vi-VN');
+                                            if (type === 'pass_rate') return value + '%';
+                                            return value;
                                         }
-                                    }
+                                    },
+                                    max: (type === 'pass_rate') ? 100 : undefined
                                 }
                             }
                         }
